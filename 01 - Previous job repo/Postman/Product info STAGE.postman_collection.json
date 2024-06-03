@@ -1,0 +1,4820 @@
+{
+	"info": {
+		"_postman_id": "d2fc5896-ac29-4c17-8c03-1ac311f0c2b1",
+		"name": "Product info STAGE",
+		"description": "Для коллекции нужен аккаунт без Google Shopping вебшопа, настройка gs-product-price, \"Fill dashboard\" -> \"No\".  \nПродукт {{ProductID}} должен быть без матчей и рекомендаций, qty - 1.  \nВ коллекции создаем вебшоп гугл шоппинг с gs-product-price ценами.  \nМеняем qty рекомендации, добавляем рекомендацию в матч, удаляем матч, удаляем рекомендацию в дисмис, востанавливаем с дисмис в рекомендации, удаляем вебшоп, форсируем продукт лист и проверяем, что рекомендаций нет.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29429126",
+		"_collection_link": "https://priceshape-qa-team.postman.co/workspace/Priceshape-QA-team~d7aa963c-2715-492c-a94f-33bcfc083d8c/collection/17508544-d2fc5896-ac29-4c17-8c03-1ac311f0c2b1?action=share&source=collection_link&creator=29429126"
+	},
+	"item": [
+		{
+			"name": "Product panel",
+			"item": [
+				{
+					"name": "Check GA data",
+					"item": [
+						{
+							"name": "Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Switch into account successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get feed, check GA",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"if (jsonData.feed.hasOwnProperty('id')) {",
+											"    pm.collectionVariables.set(\"FeedID\", jsonData.feed.id);",
+											"    if (pm.collectionVariables.get(\"FeedID\") == jsonData.feed.id) {",
+											"        pm.test(\"FeedID received successful\", function () {",
+											"            console.log(\"Response FeedID = \", jsonData.feed.id, \"; collectionVariable FeedID = \", (pm.collectionVariables.get(\"FeedID\")));",
+											"        });",
+											"    }",
+											"    pm.collectionVariables.set(\"FeedName\", jsonData.feed.name);",
+											"    if (pm.collectionVariables.get(\"FeedName\") == jsonData.feed.name) {",
+											"        pm.test(\"FeedName received successful\", function () {",
+											"            console.log(\"Response FeedName = \", jsonData.feed.name, \"; collectionVariable FeedName = \", (pm.collectionVariables.get(\"FeedName\")));",
+											"        });",
+											"    }",
+											"    pm.collectionVariables.set(\"FeedCount\", jsonData.feed.count);",
+											"    if (pm.collectionVariables.get(\"FeedCount\") == jsonData.feed.count) {",
+											"        pm.test(\"FeedCount received successful\", function () {",
+											"            console.log(\"Response FeedCount = \", jsonData.feed.count, \"; collectionVariable FeedCount = \", (pm.collectionVariables.get(\"FeedCount\")));",
+											"        });",
+											"    }",
+											"    if (jsonData.feed.ga_data == null || jsonData.feed.ga_data.enableGa == false) {",
+											"        pm.test(\"GA disabled\", function () {",
+											"            pm.expect(jsonData.feed.ga_data.enableGa).to.eql(false) || pm.expect(jsonData.feed.ga_data).to.eql(null);",
+											"            postman.setNextRequest(\"PRSP-2527 Enable GA\");",
+											"        });",
+											"    } else if (pm.expect(jsonData.feed.ga_data.enableGa).to.eql(true)) {",
+											"        pm.test(\"GA enabled\", function () {",
+											"            pm.expect(jsonData.feed.ga_data.enableGa).to.eql(true);",
+											"            postman.setNextRequest(\"Get any Product ID\");",
+											"        });",
+											"    } else {",
+											"        pm.test(jsonData.message, function () {",
+											"            postman.setNextRequest(null);",
+											"        });",
+											"    }",
+											"} else {",
+											"    pm.test(jsonData.message, function () {",
+											"        postman.setNextRequest(null);",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/feed",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"feed"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2527 Enable GA",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": {{FeedID}},\n    \"url\": null,\n    \"link\": null,\n    \"name\": \"{{FeedName}}\",\n    \"note\": null,\n    \"count\": {{FeedCount}},\n    \"status\": \"Scraped successfully\",\n    \"ga_data\": {\n        \"viewId\": null,\n        \"apiType\": \"UA\",\n        \"enableGa\": true,\n        \"propertyId\": null,\n        \"compareField\": \"gtin\",\n        \"cronUpdateType\": \"mockData\",\n        \"customApiField\": false,\n        \"compareApiField\": \"ga:productSku\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/save-google-analytics/{{FeedID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"save-google-analytics",
+										"{{FeedID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check GA ON",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"GA is ON\", function () {",
+											"    pm.expect(jsonData.feed.ga_data.enableGa).to.be.equal(true);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/feed",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"feed"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get any Product ID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"AnyProductID\", jsonData.items[0].id);",
+											"if (pm.collectionVariables.get(\"AnyProductID\")) {",
+											"    pm.test(\"Product ID received successful\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"} else {",
+											"    pm.test(\"No products\", function () {",
+											"        console.log(\"No products\");",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-574 Check GA data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Response contains GA property\", function () {",
+											"    pm.expect(jsonData).to.have.property('profit') ||",
+											"        pm.expect(jsonData).to.have.property('last_sale_date') ||",
+											"        pm.expect(jsonData).to.have.property('clicks') ||",
+											"        pm.expect(jsonData).to.have.property('conversion_rate') ||",
+											"        pm.expect(jsonData).to.have.property('cost') ||",
+											"        pm.expect(jsonData).to.have.property('visitors') ||",
+											"        pm.expect(jsonData).to.have.property('number_of_sales') ||",
+											"        pm.expect(jsonData).to.have.property('weeks_on_hand') ||",
+											"        pm.expect(jsonData).to.have.property('sales');",
+											"});",
+											"pm.test(\"GA property is not null or undefined\", function () {",
+											"    pm.expect(jsonData.profit).to.not.be.undefined ||",
+											"        pm.expect(jsonData.last_sale_date).to.not.be.undefined ||",
+											"        pm.expect(jsonData.clicks).to.not.be.undefined ||",
+											"        pm.expect(jsonData.conversion_rate).to.not.be.undefined ||",
+											"        pm.expect(jsonData.cost).to.not.be.undefined ||",
+											"        pm.expect(jsonData.visitors).to.not.be.undefined ||",
+											"        pm.expect(jsonData.number_of_sales).to.not.be.undefined ||",
+											"        pm.expect(jsonData.weeks_on_hand).to.not.be.undefined ||",
+											"        pm.expect(jsonData.sales).to.not.be.undefined;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/{{AnyProductID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"{{AnyProductID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2220 Disable GA",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"id\": {{FeedID}},\n    \"url\": null,\n    \"link\": null,\n    \"name\": \"{{FeedName}}\",\n    \"note\": null,\n    \"count\": {{FeedCount}},\n    \"status\": \"Scraped successfully\",\n    \"ga_data\": {\n        \"viewId\": null,\n        \"apiType\": \"UA\",\n        \"enableGa\": false,\n        \"propertyId\": null,\n        \"compareField\": \"gtin\",\n        \"cronUpdateType\": \"mockData\",\n        \"customApiField\": false,\n        \"compareApiField\": \"ga:productSku\"\n    }\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/save-google-analytics/{{FeedID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"save-google-analytics",
+										"{{FeedID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-574 Check GA data again",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Response doesn`t contains GA property\", function () {",
+											"    pm.expect(jsonData).to.not.have.property('profit') ||",
+											"        pm.expect(jsonData).to.not.have.property('last_sale_date') ||",
+											"        pm.expect(jsonData).to.not.have.property('clicks') ||",
+											"        pm.expect(jsonData).to.not.have.property('conversion_rate') ||",
+											"        pm.expect(jsonData).to.not.have.property('cost') ||",
+											"        pm.expect(jsonData).to.not.have.property('visitors') ||",
+											"        pm.expect(jsonData).to.not.have.property('number_of_sales') ||",
+											"        pm.expect(jsonData).to.not.have.property('weeks_on_hand') ||",
+											"        pm.expect(jsonData).to.not.have.property('sales');",
+											"});",
+											"pm.test(\"GA property is undefined\", function () {",
+											"    pm.expect(jsonData.profit).to.be.undefined ||",
+											"        pm.expect(jsonData.last_sale_date).to.be.undefined ||",
+											"        pm.expect(jsonData.clicks).to.be.undefined ||",
+											"        pm.expect(jsonData.conversion_rate).to.be.undefined ||",
+											"        pm.expect(jsonData.cost).to.be.undefined ||",
+											"        pm.expect(jsonData.visitors).to.be.undefined ||",
+											"        pm.expect(jsonData.number_of_sales).to.be.undefined ||",
+											"        pm.expect(jsonData.weeks_on_hand).to.be.undefined ||",
+											"        pm.expect(jsonData.sales).to.be.undefined;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/{{AnyProductID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"{{AnyProductID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "Коллекция сделана, но ограничения есть только на беке, поэтому проход фейлится.\n\n[PRSP-2527 ](https://app.qase.io/case/PRSP-2527) B: Datafeeds -> Enable GA and cron \"Mock testing data\" (Admin/RA)\n\n[PRSP-574 ](https://app.qase.io/case/PRSP-574) B: Check displaying when GA is disabled without DT\n\n[PRSP-2220 ](https://app.qase.io/case/PRSP-2220) B: Datafeeds -> Disable GA without dynamic tags (Admin/RA)"
+				},
+				{
+					"name": "Check gross margin, gross profit",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.collectionVariables.set(\"FeedID\", jsonData.user.current_account.feed.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2055, 2057 Check gross profit, gross margin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var productPrice = jsonData.clear_price;",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productVat = jsonData.vat;",
+											"pm.collectionVariables.set(\"ProductPrice\", productPrice);",
+											"pm.collectionVariables.set(\"ProductCostPrice\", productCostPrice);",
+											"pm.collectionVariables.set(\"ProductVat\", productVat);",
+											"console.log(\"ProductPrice:\", productPrice);",
+											"console.log(\"ProductCostPrice:\", productCostPrice);",
+											"console.log(\"ProductVat:\", productVat);",
+											"// Calculate the expected value of gross_margin using the formula",
+											"var expectedGrossMargin = (((productPrice * 100) / (productVat + 100) - productCostPrice) / ((productPrice * 100) / (productVat + 100))) * 100;",
+											"// Get the actual value of gross_margin from the response",
+											"var actualGrossMargin = parseFloat(jsonData.gross_margin.replace(\"%\", \"\"));",
+											"// Assert that the expected and actual values of gross_margin are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"Gross margin is calculated correctly\", function () {",
+											"    pm.expect(actualGrossMargin).to.be.closeTo(expectedGrossMargin, 0.01);",
+											"});",
+											"// Calculate the expected value of gross_profit using the formula",
+											"var expectedGrossProfit = (productPrice * 100) / (productVat + 100) - productCostPrice;",
+											"// Get the actual value of gross_profit from the response",
+											"var actualGrossProfit = parseFloat(jsonData.gross_profit);",
+											"// Assert that the expected and actual values of gross_profit are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"Gross profit is calculated correctly\", function () {",
+											"    pm.expect(actualGrossProfit).to.be.closeTo(expectedGrossProfit, 0.01);",
+											"});",
+											"console.log(\"ExpectedGrossProfit: \", expectedGrossProfit);",
+											"console.log(\"ExpectedGrossMargin\", expectedGrossMargin);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"page\": 0,\n    \"sort\": \"matches\",\n    \"limit\": 25,\n    \"search\": null,\n    \"direction\": \"DESC\",\n    \"onlyFacets\": false,\n    \"productList\": true,\n    \"isExactMatch\": false,\n    \"isCustomHideLoader\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-134 Change product VAT",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"productIds\": [\n        69793355\n    ],\n    \"value\": {{NewProductVat}},\n    \"selectedAll\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/update-products-vat",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"update-products-vat"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP- 1992 VAT \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"vat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-26 Change cost price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cost_price\": {{NewProductCostPrice}}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/69793355/save-cost-price",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"69793355",
+										"save-cost-price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1990 Cost price \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"cost_price\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check cost price, vat, changed gross margin gross profit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check 'Cost price value '200''\", function () {",
+											"    pm.expect(jsonData.cost_price).to.eql(200);",
+											"});",
+											"pm.test(\"Check 'VAT value '20''\", function () {",
+											"    pm.expect(jsonData.vat).to.eql(20);",
+											"});",
+											"var productPrice = jsonData.clear_price;",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productVat = jsonData.vat;",
+											"// Calculate the expected value of gross_margin using the formula",
+											"var expectedGrossMargin = (((productPrice * 100) / (productVat + 100) - productCostPrice) / ((productPrice * 100) / (productVat + 100))) * 100;",
+											"// Get the actual value of gross_margin from the response",
+											"var actualGrossMargin = parseFloat(jsonData.gross_margin.replace(\"%\", \"\"));",
+											"// Assert that the expected and actual values of gross_margin are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"Gross margin is calculated correctly\", function () {",
+											"    pm.expect(actualGrossMargin).to.be.closeTo(expectedGrossMargin, 0.01);",
+											"});",
+											"// Calculate the expected value of gross_profit using the formula",
+											"var expectedGrossProfit = (productPrice * 100) / (productVat + 100) - productCostPrice;",
+											"// Get the actual value of gross_profit from the response",
+											"var actualGrossProfit = parseFloat(jsonData.gross_profit);",
+											"// Assert that the expected and actual values of gross_profit are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"Gross profit is calculated correctly\", function () {",
+											"    pm.expect(actualGrossProfit).to.be.closeTo(expectedGrossProfit, 0.01);",
+											"});",
+											"console.log(\"expectedGrossProfit: \", expectedGrossProfit);",
+											"console.log(\"expectedGrossMargin: \", expectedGrossMargin);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-175 Force update datafeed",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"Feed will be updated shortly\");",
+											"});",
+											"setTimeout(function() {",
+											"    postman.setNextRequest('Check attributes after feed update');",
+											"}, 15000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/feeds/update/{{FeedID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"feeds",
+										"update",
+										"{{FeedID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check attributes after feed update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check Product Attributes Updated From Datafeed\", function () {",
+											"    pm.expect(jsonData.cost_price).to.be.closeTo(pm.collectionVariables.get(\"ProductCostPrice\"), 0.01);",
+											"    pm.expect(jsonData.vat).to.equal(pm.collectionVariables.get(\"ProductVat\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-2055 ](https://app.qase.io/case/PRSP-2055) B: Product info->Attribute computation -> Gross margin/New Gross margin\n\n[PRSP-2057 ](https://app.qase.io/case/PRSP-2057) B: Product info->Attribute computation -> Gross profit/New Gross profit\n\n[PRSP-134 ](https://app.qase.io/case/PRSP-134) B: Product info->Product panel->Vat->Change VAT\n\n[PRSP-1992 ](https://app.qase.io/case/PRSP-1992) B: Product info -> Product panel -> \"Take from datafeed\" -> VAT\n\n[PRSP-26 ](https://app.qase.io/case/PRSP-26) B: Product info->Product panel->Cost price->Change cost price\n\n[PRSP-1990 ](https://app.qase.io/case/PRSP-1990) B: Product info -> Product panel -> \"Take from datafeed\" -> Cost price\n\n[PRSP-175 ](https://app.qase.io/case/PRSP-175) B: Product list -> Update feed button (Admin)"
+				},
+				{
+					"name": "Check new gross margin, new gross profit",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-225 Add manual price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check 'manual price value'\", function () {",
+											"    pm.expect(jsonData.data.current.new_price).to.eql(\"400\");",
+											"});",
+											"var currentId = jsonData.data.current.id;",
+											"pm.collectionVariables.set('ManualPriceID', currentId);",
+											"if (pm.collectionVariables.get('ManualPriceID')) {",
+											"    pm.test(\"ManualPriceID received successful\", function () {",
+											"        console.log(\"ManualPriceID: \", pm.collectionVariables.get('ManualPriceID'));",
+											"    });",
+											"} else {",
+											"    pm.test(\"ManualPriceID doesn`t received\", function () {",
+											"        console.log(\"Test failed\");",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"end\": null,\n    \"start\": null,\n    \"new_price\": 400\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-manual-prices/add/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-manual-prices",
+										"add",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2055, 2057 Check new gross margin, new gross profit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var manualPrice = jsonData.manual_price;",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productVat = jsonData.vat;",
+											"// Calculate the expected value of new_gross_margin using the formula",
+											"var expectedNewGrossMargin = (((manualPrice * 100) / (productVat + 100) - productCostPrice) / ((manualPrice * 100) / (productVat + 100))) * 100;",
+											"// Get the actual value of new_gross_margin from the response",
+											"var actualNewGrossMargin = parseFloat(jsonData.new_gross_margin.replace(\"%\", \"\"));",
+											"// Assert that the expected and actual values of gross_margin are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"New Gross margin is calculated correctly\", function () {",
+											"    pm.expect(actualNewGrossMargin).to.be.closeTo(expectedNewGrossMargin, 0.01);",
+											"});",
+											"// Calculate the expected value of new_gross_profit using the formula",
+											"var expectedNewGrossProfit = (manualPrice * 100) / (productVat + 100) - productCostPrice;",
+											"// Get the actual value of new_gross_profit from the response",
+											"var actualNewGrossProfit = parseFloat(jsonData.new_gross_profit);",
+											"// Assert that the expected and actual values of gross_profit are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"New Gross profit is calculated correctly\", function () {",
+											"    pm.expect(actualNewGrossProfit).to.be.closeTo(expectedNewGrossProfit, 0.01);",
+											"});",
+											"console.log(\"ExpectedNewGrossProfit: \", expectedNewGrossProfit);",
+											"console.log(\"ExpectedNewGrossMargin\", expectedNewGrossMargin);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-578 Edit manual price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check 'manual price value'\", function () {",
+											"    pm.expect(jsonData.data.current.new_price).to.eql(\"500\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"end\": null,\n    \"start\": null,\n    \"new_price\": 500\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-manual-prices/edit/{{ManualPriceID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-manual-prices",
+										"edit",
+										"{{ManualPriceID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check NEW new gross margin, new gross profit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var manualPrice = jsonData.manual_price;",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productVat = jsonData.vat;",
+											"// Calculate the expected value of new_gross_margin using the formula",
+											"var expectedNewGrossMargin = (((manualPrice * 100) / (productVat + 100) - productCostPrice) / ((manualPrice * 100) / (productVat + 100))) * 100;",
+											"// Get the actual value of new_gross_margin from the response",
+											"var actualNewGrossMargin = parseFloat(jsonData.new_gross_margin.replace(\"%\", \"\"));",
+											"// Assert that the expected and actual values of gross_margin are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"New Gross margin is calculated correctly\", function () {",
+											"    pm.expect(actualNewGrossMargin).to.be.closeTo(expectedNewGrossMargin, 0.01);",
+											"});",
+											"// Calculate the expected value of new_gross_profit using the formula",
+											"var expectedNewGrossProfit = (manualPrice * 100) / (productVat + 100) - productCostPrice;",
+											"// Get the actual value of new_gross_profit from the response",
+											"var actualNewGrossProfit = parseFloat(jsonData.new_gross_profit);",
+											"// Assert that the expected and actual values of gross_profit are equal with a tolerance of 0.01 (due to rounding in the formula)",
+											"pm.test(\"New Gross profit is calculated correctly\", function () {",
+											"    pm.expect(actualNewGrossProfit).to.be.closeTo(expectedNewGrossProfit, 0.01);",
+											"});",
+											"console.log(\"ExpectedNewGrossProfit: \", expectedNewGrossProfit);",
+											"console.log(\"ExpectedNewGrossMargin: \", expectedNewGrossMargin);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-29 Delete manual price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-manual-prices/{{ManualPriceID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-manual-prices",
+										"{{ManualPriceID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check no new margin and profit",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check if new_gross_margin is not present\", function () {",
+											"    pm.expect(jsonData).to.not.have.property('new_gross_margin');",
+											"});",
+											"pm.test(\"Check if new_gross_profit is not present\", function () {",
+											"    pm.expect(jsonData).to.not.have.property('new_gross_profit');",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-225 ](https://app.qase.io/case/PRSP-225) B: Product info -> Product panel ->Manual price-> A manual price setting\n\n[PRSP-2055 ](https://app.qase.io/case/PRSP-2055) B: Product info->Attribute computation -> Gross margin/New Gross margin\n\n[PRSP-2057 ](https://app.qase.io/case/PRSP-2057) B: Product info->Attribute computation -> Gross profit/New Gross profit\n\n[PRSP-578 ](https://app.qase.io/case/PRSP-578) B: Product info -> Product panel ->Manual price-> A manual price change\n\n[PRSP-29 ](https://app.qase.io/case/PRSP-29) B: Product info -> Product panel ->Manual price-> Remove a manual price"
+				},
+				{
+					"name": "Check inventory value",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login sucessful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.collectionVariables.set(\"FeedID\", jsonData.user.current_account.feed.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-568 Check inventory value",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productsInStock = jsonData.products_in_stock;",
+											"var expectedInventoryValue = productCostPrice * productsInStock;",
+											"// Get the actual inventory value from the response",
+											"var actualInventoryValue = parseFloat(jsonData.inventory);",
+											"pm.test(\"New Inventory value is calculated correctly\", function () {",
+											"    pm.expect(actualInventoryValue).to.be.closeTo(expectedInventoryValue, 0.01);",
+											"});",
+											"console.log(\"ExpectedInventoryValue: \", expectedInventoryValue);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-26 Change cost price",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cost_price\": 500\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/69793355/save-cost-price",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"69793355",
+										"save-cost-price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check new inventory value",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check New Cost price value\", function () {",
+											"    pm.expect(pm.response.json().cost_price).to.eql(500);",
+											"});",
+											"var productCostPrice = parseFloat(jsonData.cost_price.toFixed(2)); // Округляем до 2 знаков после запятой",
+											"var productsInStock = jsonData.products_in_stock;",
+											"var expectedInventoryValue = productCostPrice * productsInStock;",
+											"// Get the actual inventory value from the response",
+											"var actualInventoryValue = parseFloat(jsonData.inventory);",
+											"pm.test(\"New Inventory value is calculated correctly\", function () {",
+											"    pm.expect(actualInventoryValue).to.be.equal(expectedInventoryValue);",
+											"});",
+											"console.log(\"ExpectedInventoryValue: \", expectedInventoryValue);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1990 Cost price \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"cost_price\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-175 Force update datafeed",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"Feed will be updated shortly\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/feeds/update/{{FeedID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"feeds",
+										"update",
+										"{{FeedID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-568 ](https://app.qase.io/case/PRSP-568) B: Product info-> Attribute computation -> Inventory value\n\n[PRSP-26 ](https://app.qase.io/case/PRSP-26) B: Product info->Product panel->Cost price->Change cost price\n\n[PRSP-1990 ](https://app.qase.io/case/PRSP-1990) B: Product info -> Product panel -> \"Take from datafeed\" -> Cost price\n\n[PRSP-175 ](https://app.qase.io/case/PRSP-175) B: Product list -> Update feed button (Admin)"
+				},
+				{
+					"name": "Check median, average price",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check no matchings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Matchings data, average and median is null\", function () {",
+											"    pm.expect(jsonData).to.have.property('matchings_data_count', null);",
+											"    pm.expect(jsonData).to.have.property('average_price', null);",
+											"    pm.expect(jsonData).to.have.property('median_price', null);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2071 Add 3 manual matches",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Manual competitors added successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"setTimeout(function() {",
+											"    postman.setNextRequest('PRSP-2053 Check median price');",
+											"}, 1000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"data\": [\n        {\n            \"id\": null,\n            \"link\": \"https://www.kitchentime.dk/p/oy-duftlys-200g-glas-bla\",\n            \"clear_link\": \"https://www.kitchentime.dk/p/oy-duftlys-200g-glas-bla\"\n        },\n        {\n            \"id\": null,\n            \"link\": \"https://www.connox.dk/kategorier/tilbehoer/badevaerelse-tilbehoer/pleje-velvaere/skandinavisk-handcreme.html?itm=311828&p=101192&srsltid=AfmBOoqkbk7Ru-A7rmpk5NlUAhPagaVJ0Q2Mgk465Fd_mjQgVp2l9adfKkI\",\n            \"clear_link\": \"https://www.connox.dk/kategorier/tilbehoer/badevaerelse-tilbehoer/pleje-velvaere/skandinavisk-handcreme.html?itm=311828&p=101192&srsltid=AfmBOoqkbk7Ru-A7rmpk5NlUAhPagaVJ0Q2Mgk465Fd_mjQgVp2l9adfKkI\"\n        },\n        {\n            \"id\": null,\n            \"link\": \"https://lyko.com/da/skandinavisk/skandinavisk-fjord-hand-cream-75ml?srsltid=AfmBOoqYzFKys3Fs0Kttx5J7GAtn_Fu7DdX7HC0bKFm-B7xVG028eIu4HP4\",\n            \"clear_link\": \"https://lyko.com/da/skandinavisk/skandinavisk-fjord-hand-cream-75ml?srsltid=AfmBOoqYzFKys3Fs0Kttx5J7GAtn_Fu7DdX7HC0bKFm-B7xVG028eIu4HP4\"\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/69793355/manual-competitors",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"69793355",
+										"manual-competitors"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2053 Check median price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var competitors = jsonData.competitors;",
+											"var numOfMatches = parseInt(jsonData.matchings_data_count);",
+											"var actualMedianPrice = jsonData.median_price;",
+											"// Извлекаем clear_price из всех конкурентов и преобразуем их в числа",
+											"var clearPrices = competitors",
+											"    .filter(function (competitor) {",
+											"        return competitor.hasOwnProperty(\"clear_price\");",
+											"    })",
+											"    .map(function (competitor) {",
+											"        return parseFloat(competitor.clear_price);",
+											"    });",
+											"// Инициализируем переменную для медианной цены",
+											"var expectedMedianPrice;",
+											"// Вычисляем медианную цену в зависимости от четности numOfMatches",
+											"if (numOfMatches % 2 === 1) {",
+											"    // Если numOfMatches нечетное, берем значение из середины массива",
+											"    expectedMedianPrice = clearPrices[Math.floor(numOfMatches / 2)];",
+											"} else {",
+											"    // Если numOfMatches четное, берем среднее значение двух средних элементов",
+											"    var middle1 = clearPrices[numOfMatches / 2 - 1];",
+											"    var middle2 = clearPrices[numOfMatches / 2];",
+											"    expectedMedianPrice = (middle1 + middle2) / 2;",
+											"}",
+											"pm.test(\"Median Price is calculated correctly\", function () {",
+											"    pm.expect(actualMedianPrice.toFixed(2)).to.equal(expectedMedianPrice.toFixed(2));",
+											"});",
+											"console.log(\"Number of matches: \", numOfMatches);",
+											"console.log(\"Expected Median Price\", expectedMedianPrice);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-2054 Check average price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var actualAveragePrice = jsonData.average_price;",
+											"var numOfMatches = parseInt(jsonData.matchings_data_count);",
+											"var competitors = jsonData.competitors;",
+											"if (competitors.length > 0) {",
+											"    // Извлекаем ID первого конкурента для следующего теста",
+											"    var firstCompetitorId = competitors[0].id;",
+											"    // Устанавливаем значение в переменную коллекции CompetitorId",
+											"    pm.collectionVariables.set(\"CompetitorID\", firstCompetitorId);",
+											"    // Выводим ID первого конкурента в консоль",
+											"    console.log(\"CompetitorID:\", firstCompetitorId);",
+											"} else {",
+											"    console.log(\"No competitors found in the response.\");",
+											"}",
+											"// Инициализируем переменные для хранения суммы и общего количества конкурентов",
+											"var totalPrice = 0;",
+											"var totalCount = 0;",
+											"// Перебираем конкурентов",
+											"for (var i = 0; i < competitors.length; i++) {",
+											"    // Проверяем, есть ли у текущего конкурента clear_price",
+											"    if (competitors[i].hasOwnProperty(\"clear_price\")) {",
+											"        // Извлекаем clear_price текущего конкурента и преобразуем его в число",
+											"        var clearPrice = parseFloat(competitors[i].clear_price);",
+											"",
+											"        // Прибавляем clear_price к общей сумме и увеличиваем общее количество",
+											"        totalPrice += clearPrice;",
+											"        totalCount++;",
+											"    }",
+											"}",
+											"pm.test(\"Number of matches is calculated correctly\", function () {",
+											"    pm.expect(totalCount).to.equal(numOfMatches);",
+											"});",
+											"// Вычисляем среднее значение, если есть конкуренты с clear_price",
+											"var expectedAveragePrice = totalCount > 0 ? totalPrice / totalCount : 0;",
+											"// Выводим результаты в консоль (это необязательно, но может помочь при отладке)",
+											"console.log(\"Total Price: \", totalPrice);",
+											"console.log(\"Total Count: \", totalCount);",
+											"console.log(\"Expected average Price: \", expectedAveragePrice);",
+											"// Выполняем проверку на наличие среднего значения",
+											"pm.test(\"Average Price is calculated correctly\", function () {",
+											"    pm.expect(actualAveragePrice.toFixed(2)).to.equal(expectedAveragePrice.toFixed(2));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-33 Delete match",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Match deleted\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"setTimeout(function () {",
+											"    postman.setNextRequest('Check changed median price');",
+											"}, 1000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"product_id\": \"69793355\",\n    \"competitor_id\": [\n        {{CompetitorID}}\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-match",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-match"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check changed median price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var competitors = jsonData.competitors;",
+											"var numOfMatches = parseInt(jsonData.matchings_data_count);",
+											"var actualMedianPrice = jsonData.median_price;",
+											"// Извлекаем clear_price из всех конкурентов и преобразуем их в числа",
+											"var clearPrices = competitors",
+											"    .filter(function (competitor) {",
+											"        return competitor.hasOwnProperty(\"clear_price\");",
+											"    })",
+											"    .map(function (competitor) {",
+											"        return parseFloat(competitor.clear_price);",
+											"    });",
+											"// Инициализируем переменную для медианной цены",
+											"var expectedMedianPrice;",
+											"// Вычисляем медианную цену в зависимости от четности numOfMatches",
+											"if (numOfMatches % 2 === 1) {",
+											"    // Если numOfMatches нечетное, берем значение из середины массива",
+											"    expectedMedianPrice = clearPrices[Math.floor(numOfMatches / 2)];",
+											"} else {",
+											"    // Если numOfMatches четное, берем среднее значение двух средних элементов",
+											"    var middle1 = clearPrices[numOfMatches / 2 - 1];",
+											"    var middle2 = clearPrices[numOfMatches / 2];",
+											"    expectedMedianPrice = (middle1 + middle2) / 2;",
+											"}",
+											"pm.test(\"Median Price is calculated correctly\", function () {",
+											"    pm.expect(actualMedianPrice.toFixed(2)).to.equal(expectedMedianPrice.toFixed(2));",
+											"});",
+											"console.log(\"Number of matches: \", numOfMatches);",
+											"console.log(\"Expected Median Price\", expectedMedianPrice);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check changed average price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"var actualAveragePrice = jsonData.average_price;",
+											"var numOfMatches = parseInt(jsonData.matchings_data_count);",
+											"var competitors = jsonData.competitors;",
+											"if (competitors.length > 0) {",
+											"    // Извлекаем ID первого и второго конкурентов для следующего теста",
+											"    var firstCompetitorId = competitors[0].id;",
+											"    var secondCompetitorId = competitors[1].id;",
+											"    // Устанавливаем значения в переменные коллекции CompetitorID и CompetitorID2",
+											"    pm.collectionVariables.set(\"CompetitorID\", firstCompetitorId);",
+											"    pm.collectionVariables.set(\"CompetitorID2\", secondCompetitorId);",
+											"    // Выводим ID первого и второго конкурентов в консоль",
+											"    console.log(\"CompetitorID:\", firstCompetitorId);",
+											"    console.log(\"CompetitorID2:\", secondCompetitorId);",
+											"} else {",
+											"    console.log(\"No competitors found in the response.\");",
+											"}",
+											"// Инициализируем переменные для хранения суммы и общего количества конкурентов",
+											"var totalPrice = 0;",
+											"var totalCount = 0;",
+											"// Перебираем конкурентов",
+											"for (var i = 0; i < competitors.length; i++) {",
+											"    // Проверяем, есть ли у текущего конкурента clear_price",
+											"    if (competitors[i].hasOwnProperty(\"clear_price\")) {",
+											"        // Извлекаем clear_price текущего конкурента и преобразуем его в число",
+											"        var clearPrice = parseFloat(competitors[i].clear_price);",
+											"",
+											"        // Прибавляем clear_price к общей сумме и увеличиваем общее количество",
+											"        totalPrice += clearPrice;",
+											"        totalCount++;",
+											"    }",
+											"}",
+											"pm.test(\"Number of matches is calculated correctly\", function () {",
+											"    pm.expect(totalCount).to.equal(numOfMatches);",
+											"});",
+											"// Вычисляем среднее значение, если есть конкуренты с clear_price",
+											"var expectedAveragePrice = totalCount > 0 ? totalPrice / totalCount : 0;",
+											"console.log(\"Total Price:\", totalPrice);",
+											"console.log(\"Total Count:\", totalCount);",
+											"console.log(\"Expected average Price:\", expectedAveragePrice);",
+											"// Выполняем проверку на наличие среднего значения",
+											"pm.test(\"Average Price is calculated correctly\", function () {",
+											"    pm.expect(actualAveragePrice.toFixed(2)).to.equal(expectedAveragePrice.toFixed(2));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-33 Delete 2 matches",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Matches deleted\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"setTimeout(function () {",
+											"    postman.setNextRequest('Check no matchings');",
+											"}, 1000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"product_id\": \"69793355\",\n    \"competitor_id\": [\n        {{CompetitorID}},\n        {{CompetitorID2}}\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-match",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-match"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check no matchings",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Matchings data, average and median is null\", function () {",
+											"    pm.expect(jsonData).to.have.property('matchings_data_count', null);",
+											"    pm.expect(jsonData).to.have.property('average_price', null);",
+											"    pm.expect(jsonData).to.have.property('median_price', null);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793355",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793355"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-2071 ](https://app.qase.io/case/PRSP-2071) B: Product info -> Matches panel -> Add match button -> Creating manual competitor\n\n[PRSP-2053 ](https://app.qase.io/case/PRSP-2053) B: Product info->Attribute computation -> Median price\n\n[PRSP-2054 ](https://app.qase.io/case/PRSP-2054) B: Product info->Attribute computation -> Average price\n\n[PRSP-33 ](https://app.qase.io/case/PRSP-33) B: Product info -> Matches card -> \"Delete selected\" button"
+				},
+				{
+					"name": "Change product gtin, cost price, ship. price, VAT, qty",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.collectionVariables.set(\"FeedID\", jsonData.user.current_account.feed.id);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get products attributes",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"ProductCostPr\", jsonData.cost_price);",
+											"pm.collectionVariables.set(\"ProductVAT\", jsonData.vat);",
+											"pm.collectionVariables.set(\"ProductGtin\", jsonData.gtin);",
+											"pm.collectionVariables.set(\"ProductQty\", jsonData.quantity);",
+											"pm.collectionVariables.set(\"ProductShipPr\", jsonData.shipping_price);",
+											"if (",
+											"    pm.collectionVariables.get(\"ProductCostPr\") &&",
+											"    pm.collectionVariables.get(\"ProductVAT\") &&",
+											"    pm.collectionVariables.get(\"ProductGtin\") &&",
+											"    pm.collectionVariables.get(\"ProductQty\") &&",
+											"    pm.collectionVariables.get(\"ProductShipPr\")",
+											") {",
+											"    pm.test(\"Product data received successful\", function () {",
+											"        pm.response.to.have.status(200);",
+											"    });",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-135 Change gtin",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"New gtin saved\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"gtin\": \"57095134364\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793349/update-gtin",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793349",
+										"update-gtin"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-176 Gtin \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"gtin\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-26 Change cost price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"New cost price saved\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"cost_price\": 500\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/69793349/save-cost-price",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"69793349",
+										"save-cost-price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1990 Cost price \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"cost_price\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-134 Change product VAT",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"New VAT will be saved shortly\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"productIds\": [\n        69793349\n    ],\n    \"value\": 33,\n    \"selectedAll\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/update-products-vat",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"update-products-vat"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1992 VAT \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"vat\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1051 Change shipping price",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"New shipping price saved\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"shipping_price\": 12.22\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/69793349/save-shipping-price",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"69793349",
+										"save-shipping-price"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1991 Shipping price \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"shipping_price\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-28 Change product qty",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"New quantity saved\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"quantity\": 1.99,\n    \"with_competitors\": false\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/compare-products/69793349/save-quantity",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"compare-products",
+										"69793349",
+										"save-quantity"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-1993 QTY \"take from datafeed\"",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"After the next feed update this data will be updated\");",
+											"});",
+											"pm.test(\"Check if manual_fields are reset\", function () {",
+											"    pm.expect(jsonData.manual_fields).to.be.an('array').that.is.empty;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"manual_field\": \"quantity\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/delete-manual-change-field/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"delete-manual-change-field",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check changed attributes",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check Product Сhanged attributes\", function () {",
+											"    pm.expect(jsonData.cost_price).to.equal(500);",
+											"    pm.expect(jsonData.vat).to.equal(33);",
+											"    pm.expect(jsonData.gtin).to.equal(\"57095134364\");",
+											"    pm.expect(jsonData.quantity).to.equal(1.99);",
+											"    // Для shipping_price обрежем до 2 символов после запятой и сравним",
+											"    var expectedShippingPrice = 12.22;",
+											"    var actualShippingPrice = parseFloat(jsonData.shipping_price).toFixed(2);",
+											"    pm.expect(actualShippingPrice).to.equal(expectedShippingPrice.toString());",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-175 Force update datafeed",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(jsonData.message, function () {",
+											"    pm.expect(jsonData.message).to.equal(\"Feed will be updated shortly\");",
+											"});",
+											"setTimeout(function () {",
+											"    postman.setNextRequest('Check attributes after feed update');",
+											"}, 1000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/feeds/update/{{FeedID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"feeds",
+										"update",
+										"{{FeedID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check attributes after feed update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();",
+											"pm.test(\"Check Product Attributes Updated From Datafeed\", function () {",
+											"    pm.expect(jsonData.cost_price).to.equal(pm.collectionVariables.get(\"ProductCostPr\"));",
+											"    pm.expect(jsonData.vat).to.equal(pm.collectionVariables.get(\"ProductVAT\"));",
+											"    pm.expect(jsonData.gtin).to.equal(pm.collectionVariables.get(\"ProductGtin\"));",
+											"    pm.expect(jsonData.quantity).to.equal(pm.collectionVariables.get(\"ProductQty\"));",
+											"    pm.expect(jsonData.shipping_price).to.equal(pm.collectionVariables.get(\"ProductShipPr\"));",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/69793349",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"69793349"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-135 ](https://app.qase.io/case/PRSP-135) B: Product info -> Product panel -> Change GTIN/EAN (Admin/ RA)\n\n[PRSP-176 ](https://app.qase.io/case/PRSP-176) B: Product info -> Product panel -> \"Take from datafeed\"-> GTIN/EAN\n\n[PRSP-26 ](https://app.qase.io/case/PRSP-26) B: Product info->Product panel->Cost price->Change cost price\n\n[PRSP-1990 ](https://app.qase.io/case/PRSP-1990) B: Product info -> Product panel -> \"Take from datafeed\" -> Cost price\n\n[PRSP-134 ](https://app.qase.io/case/PRSP-134) B: Product info->Product panel->Vat->Change VAT\n\n[PRSP-1992 ](https://app.qase.io/case/PRSP-1992) B: Product info -> Product panel -> \"Take from datafeed\" -> VAT\n\n[PRSP-1051 ](https://app.qase.io/case/PRSP-1051) B: Product info->Product panel->Shipping price->Change shipping price (User)\n\n[PRSP-1991 ](https://app.qase.io/case/PRSP-1991) B: Product info -> Product panel -> \"Take from datafeed\" -> Shipping price\n\n[PRSP-28 ](https://app.qase.io/case/PRSP-28) B: Product info -> Product panel -> Change quantity\n\n[PRSP-1993 ](https://app.qase.io/case/PRSP-1993) B: Product info -> Product panel -> \"Take from datafeed\" -> Product quantity\n\n[PRSP-175 ](https://app.qase.io/case/PRSP-175) B: Product list -> Update feed button (Admin)"
+				}
+			]
+		},
+		{
+			"name": "Recommendations panel",
+			"item": [
+				{
+					"name": "Log in",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Switch to account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();\r",
+									"pm.test(\"Switch to account successful\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.collectionVariables.set(\"FeedID\", jsonData.user.current_account.feed.id);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID2}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"auth",
+								"switch-account",
+								"{{AccountID2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check NO webshops",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"There are no webshops in the account\", function () {",
+									"    pm.expect(jsonData.data).to.be.an('array').that.is.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/webshops",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"webshops"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PSP-949 Create Google Shopping sitemap",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Created successfully'\", function () {",
+									"    pm.response.to.have.jsonBody('message', 'Created successfully');",
+									"});",
+									"pm.test(\"Response has required fields\", function () {",
+									"    pm.response.to.have.jsonBody('data.sitemap_id');",
+									"    pm.response.to.have.jsonBody('data.webshop_id');",
+									"    pm.response.to.have.jsonBody('data.webshop_sitemap_id');",
+									"});",
+									"pm.collectionVariables.set(\"WebshopID\", jsonData.data.webshop_id);",
+									"if (pm.collectionVariables.get(\"WebshopID\")) {",
+									"    pm.test(\"WebshopID received successful\", () => {",
+									"        console.log(\"WebshopID =\", pm.collectionVariables.get(\"WebshopID\"));",
+									"    });",
+									"} else {",
+									"    pm.test(\"WebshopID receiving failed\", () => {",
+									"        postman.setNextRequest(null);",
+									"    });",
+									"}",
+									"setTimeout(function () {",
+									"    postman.setNextRequest(\"Get ProductID\");",
+									"}, 200000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"googleShopping\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/feeds/{{FeedID}}/create-scraper-sitemap",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"feeds",
+								"{{FeedID}}",
+								"create-scraper-sitemap"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get ProductID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var items = jsonData.items;",
+									"var i = 0;",
+									"while (!pm.collectionVariables.get(\"ProductID\")) {",
+									"    if (items[i].recommendations_data.all.count > 1) {",
+									"        pm.test(\"ProductID received successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"            pm.collectionVariables.set(\"ProductID\", items[i].id);",
+									"        });",
+									"        break;",
+									"    }",
+									"    i += 1;",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"direction\": \"DESC\",\n    \"limit\": 100,\n    \"page\": 0,\n    \"search\": \"\",\n    \"sort\": \"matches\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/recommendations",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"recommendations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get recommendation attributes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Product qty is 1\", function () {",
+									"    pm.expect(Number(jsonData.quantity)).to.equal(1);",
+									"});",
+									"pm.test(\"Competitor qty is 1\", function () {",
+									"    pm.expect(Number(jsonData.recommendations_data.all.competitors[0].quantity)).to.equal(1);",
+									"});",
+									"pm.collectionVariables.set(\"RecID\", jsonData.recommendations_data.all.competitors[0].id);",
+									"pm.collectionVariables.set(\"RecPrice\", jsonData.recommendations_data.all.competitors[0].clear_price);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product-list/product/{{ProductID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product-list",
+								"product",
+								"{{ProductID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-139 Change recommendation qty",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Competitor was successfully updated'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Competitor was successfully updated\");",
+									"});",
+									"pm.test(\"Quantity is '2.00'\", function () {",
+									"    pm.expect(jsonData.competitor.quantity).to.equal(\"2.00\");",
+									"});",
+									"var recPrice = parseFloat(pm.collectionVariables.get(\"RecPrice\"));",
+									"var competitorClearPrice = parseFloat(jsonData.competitor.clear_price);",
+									"var NewRecPrice = (recPrice / 2);",
+									"pm.test(\"Recommendation price is changed right\", function () {",
+									"    pm.expect(NewRecPrice).to.be.closeTo(competitorClearPrice, 0.01);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 2,\n    \"productId\": {{ProductID}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/competitors/{{RecID}}/edit",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"competitors",
+								"{{RecID}}",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-35 Delete recommendation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Products dismissed from Recommendations now, please be patient'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Products dismissed from Recommendations now, please be patient\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"matchingsIn\": [\n        {\n            \"product_id\": {{ProductID}},\n            \"competitor_id\": {{RecID}}\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/deleted-matches/dismiss-matchings",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"deleted-matches",
+								"dismiss-matchings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check delete recommendation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var recID = pm.collectionVariables.get(\"RecID\");",
+									"pm.test(\"No competitor with RecID in recommendations_data\", function () {",
+									"    var competitorWithRecID = jsonData.recommendations_data.all.competitors.find(function (competitor) {",
+									"        return competitor.id === recID;",
+									"    });",
+									"    pm.expect(competitorWithRecID).to.be.undefined;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product-list/product/{{ProductID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product-list",
+								"product",
+								"{{ProductID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-605 Restore deleted recommendations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Dismiss removed'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Dismiss removed\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"matchings\": [\n        {\n            \"product_id\": {{ProductID}},\n            \"competitor_id\": {{RecID}}\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/deleted-matches/restore-matches",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"deleted-matches",
+								"restore-matches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-34 Add recommendation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Matches will add now, please be patient'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Matches will add now, please be patient\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"matchingsIn\": [\n        {\n            \"product_id\": {{ProductID}},\n            \"competitor_id\": {{RecID}}\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/feeds/add-matchings",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"feeds",
+								"add-matchings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check added match",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var recID = pm.collectionVariables.get(\"RecID\");",
+									"pm.test(\"No competitor with RecID in recommendations_data\", function () {",
+									"    var competitorWithRecID = jsonData.recommendations_data.all.competitors.find(function (competitor) {",
+									"        return competitor.id === recID;",
+									"    });",
+									"    pm.expect(competitorWithRecID).to.be.undefined;",
+									"});",
+									"pm.test(\"Competitors ID is equal to RecID\", function () {",
+									"    pm.expect(jsonData.competitors[0].id).to.equal(recID);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product-list/product/{{ProductID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product-list",
+								"product",
+								"{{ProductID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-33 Delete match",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Match removed'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Match removed\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_id\": \"{{ProductID}}\",\n    \"competitor_id\": [\n        \"{{RecID}}\"\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/delete-match",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"delete-match"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-605 Restore deleted recommendations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Dismiss removed' \", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Dismiss removed\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"matchings\": [\n        {\n            \"product_id\": {{ProductID}},\n            \"competitor_id\": {{RecID}}\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/deleted-matches/restore-matches",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"deleted-matches",
+								"restore-matches"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-836 Delete webshop",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Webshop deleted'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Webshop deleted\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/webshops/{{WebshopID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"webshops",
+								"{{WebshopID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check NO webshops",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"There are no webshops in the account\", function () {",
+									"    pm.expect(jsonData.data).to.be.an('array').that.is.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/webshops",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"webshops"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2697 Force Product list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"Response message is 'Product list will be updated soon'\", function () {",
+									"    pm.expect(jsonData.message).to.equal(\"Product list will be updated soon\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/feeds/force-update-product",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"feeds",
+								"force-update-product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check NO recommendations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"pm.test(\"There are no competitors\", function () {",
+									"    pm.expect(jsonData.recommendations_data.all.competitors).to.be.an('array').that.is.empty;",
+									"});",
+									"pm.test(\"ProductID unset successful\", function () {",
+									"    pm.collectionVariables.set(\"ProductID\", null);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product-list/product/{{ProductID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product-list",
+								"product",
+								"{{ProductID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Logout successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/auth/logout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "[PRSP-949 ](https://app.qase.io/case/PRSP-949) B: Datafeeds->\"Google Shopping with GS prices\" button (gs-product-price) - Admin\n\n[PRSP-139 ](https://app.qase.io/case/PRSP-139) B: Product info -> Recommendation panel -> Change quantity\n\n[PRSP-35 ](https://app.qase.io/case/PRSP-35) B: Product info -> Recommendation panel -> Dismiss selected recommendations\n\n[PRSP-605 ](https://app.qase.io/case/PRSP-605) B: Deleted matches -> Apply matches (one match on one product)\n\n[PRSP-34 ](https://app.qase.io/case/PRSP-34) B: Product info -> Recommendation panel -> Add selected recommendations\n\n[PRSP-33 ](https://app.qase.io/case/PRSP-33) B: Product info -> Matches card -> \"Delete selected\" button\n\n[PRSP-836 ](https://app.qase.io/case/PRSP-836) B: Admin pages-> Webshops->Delete a Webshop\n\n[PRSP-2697](https://app.qase.io/case/PRSP-2697) B: Datafeeds -> Force Update Product List"
+		},
+		{
+			"name": "Download price history",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Switch into account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Switch to account successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountIDMain}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"auth",
+								"switch-account",
+								"{{AccountIDMain}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2443,2446 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"/*var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var yesterDay = (\"0\" + ((\"0\" + today.getDate()).slice(-2) - 1));",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"var yesterdayDate = year + \"-\" + month + \"-\" + yesterDay;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"pm.collectionVariables.set(\"yesterdayDate\", yesterdayDate);*/",
+									"var currentDate = new Date().toISOString().slice(0, 10);",
+									"var yesterdayDate = new Date(Date.now() - 864e5).toISOString().slice(0, 10);",
+									"pm.collectionVariables.set(\"currentDate\", currentDate);",
+									"pm.collectionVariables.set(\"yesterdayDate\", yesterdayDate);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"availability\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": false,\n    \"productIds\": [\n        69793359\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": true,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{yesterdayDate}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2443,2446 Open price history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account price,Postman_account availability,сheapest domain,сheapest domain price,lavprisel.dk price,lavprisel.dk availability\";",
+									"csvData.splice(3, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(2);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"yesterdayDate\"));",
+									"    pm.expect(csvData[1]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5707644283466\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5707644283466\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath1}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath1}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2445,2447 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"var oneWeekAgo = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));",
+									"var oneWeekAgoyear = oneWeekAgo.getFullYear();",
+									"var oneWeekAgomonth = String(oneWeekAgo.getMonth() + 1).padStart(2, '0');",
+									"var oneWeekAgoday = String(oneWeekAgo.getDate()).padStart(2, '0');",
+									"var dateOneWeekAgo = oneWeekAgoyear + \"-\" + oneWeekAgomonth + \"-\" + oneWeekAgoday;",
+									"pm.collectionVariables.set(\"DateOneWeekAgo\", dateOneWeekAgo);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (",
+									"    pm.expect(jsonData.fileName).to.eql(\"price_history.csv\") &&",
+									"    pm.expect(jsonData.status).to.eql(200) &&",
+									"    pm.expect(jsonData.filePath).is.not.empty",
+									") {",
+									"    pm.collectionVariables.set(\"FilePath2\", jsonData.filePath);",
+									"    if (pm.collectionVariables.get(\"FilePath2\")) {",
+									"        pm.test(\"Price history downloaded successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"    }",
+									"} else {",
+									"    pm.test(\"Price history downloading failed\", function () {",
+									"        pm.response.to.not.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"availability\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": true,\n    \"productIds\": [\n        69793359\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": true,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{DateOneWeekAgo}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2445,2447 Open price history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account price,Postman_account availability\";",
+									"csvData.splice(9, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(8);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"DateOneWeekAgo\"));",
+									"    pm.expect(csvData[7]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5707644283466\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5707644283466\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath2}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath2}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2444 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"var oneWeekAgo = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));",
+									"var oneWeekAgoyear = oneWeekAgo.getFullYear();",
+									"var oneWeekAgomonth = String(oneWeekAgo.getMonth() + 1).padStart(2, '0');",
+									"var oneWeekAgoday = String(oneWeekAgo.getDate()).padStart(2, '0');",
+									"var dateOneWeekAgo = oneWeekAgoyear + \"-\" + oneWeekAgomonth + \"-\" + oneWeekAgoday;",
+									"pm.collectionVariables.set(\"DateOneWeekAgo\", dateOneWeekAgo);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (",
+									"    pm.expect(jsonData.fileName).to.eql(\"price_history.csv\") &&",
+									"    pm.expect(jsonData.status).to.eql(200) &&",
+									"    pm.expect(jsonData.filePath).is.not.empty",
+									") {",
+									"    pm.collectionVariables.set(\"FilePath3\", jsonData.filePath);",
+									"    if (pm.collectionVariables.get(\"FilePath3\")) {",
+									"        pm.test(\"Price history downloaded successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"    }",
+									"} else {",
+									"    pm.test(\"Price history downloading failed\", function () {",
+									"        pm.response.to.not.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": false,\n    \"productIds\": [\n        69793357\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": false,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{DateOneWeekAgo}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2444 Open price history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account\";",
+									"csvData.splice(9, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(8);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"DateOneWeekAgo\"));",
+									"    pm.expect(csvData[7]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5709846017375\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5709846017375\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath3}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath3}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2444,2448 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"var oneWeekAgo = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));",
+									"var oneWeekAgoyear = oneWeekAgo.getFullYear();",
+									"var oneWeekAgomonth = String(oneWeekAgo.getMonth() + 1).padStart(2, '0');",
+									"var oneWeekAgoday = String(oneWeekAgo.getDate()).padStart(2, '0');",
+									"var dateOneWeekAgo = oneWeekAgoyear + \"-\" + oneWeekAgomonth + \"-\" + oneWeekAgoday;",
+									"pm.collectionVariables.set(\"DateOneWeekAgo\", dateOneWeekAgo);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (",
+									"    pm.expect(jsonData.fileName).to.eql(\"price_history.csv\") &&",
+									"    pm.expect(jsonData.status).to.eql(200) &&",
+									"    pm.expect(jsonData.filePath).is.not.empty",
+									") {",
+									"    pm.collectionVariables.set(\"FilePath4\", jsonData.filePath);",
+									"    if (pm.collectionVariables.get(\"FilePath4\")) {",
+									"        pm.test(\"Price history downloaded successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"    }",
+									"} else {",
+									"    pm.test(\"Price history downloading failed\", function () {",
+									"        pm.response.to.not.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"availability\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": true,\n    \"productIds\": [\n        69793357\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": true,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{DateOneWeekAgo}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-2444,2448 Open price history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account price,Postman_account availability\";",
+									"csvData.splice(9, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(8);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"DateOneWeekAgo\"));",
+									"    pm.expect(csvData[7]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5709846017375\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5709846017375\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath4}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath4}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-31 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"today.setMonth(today.getMonth() - 1);",
+									"var monthAgo = today.toISOString().slice(0, 10);",
+									"var yesterdayDate = year + \"-\" + monthAgo + \"-\" + day;",
+									"pm.collectionVariables.set(\"MonthAgoDate\", monthAgo);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (",
+									"    pm.expect(jsonData.fileName).to.eql(\"price_history.csv\") &&",
+									"    pm.expect(jsonData.status).to.eql(200) &&",
+									"    pm.expect(jsonData.filePath).is.not.empty",
+									") {",
+									"    pm.collectionVariables.set(\"FilePath5\", jsonData.filePath);",
+									"    if (pm.collectionVariables.get(\"FilePath5\")) {",
+									"        pm.test(\"Price history downloaded successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"    }",
+									"} else {",
+									"    pm.test(\"Price history downloading failed\", function () {",
+									"        pm.response.to.not.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"availability\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": false,\n    \"productIds\": [\n        69793359\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": true,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{MonthAgoDate}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-31 Open price history",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account price,Postman_account availability,сheapest domain,сheapest domain price,lavprisel.dk price,lavprisel.dk availability\";",
+									"csvData.splice(33, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(32);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"MonthAgoDate\"));",
+									"    pm.expect(csvData[31]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5707644283466\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5707644283466\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath5}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath5}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-570 Download price history",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var today = new Date();",
+									"var year = today.getFullYear();",
+									"var month = (\"0\" + (today.getMonth() + 1)).slice(-2);",
+									"var day = (\"0\" + today.getDate()).slice(-2);",
+									"var formattedDate = year + \"-\" + month + \"-\" + day;",
+									"pm.collectionVariables.set(\"currentDate\", formattedDate);",
+									"var oneWeekAgo = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));",
+									"var oneWeekAgoyear = oneWeekAgo.getFullYear();",
+									"var oneWeekAgomonth = String(oneWeekAgo.getMonth() + 1).padStart(2, '0');",
+									"var oneWeekAgoday = String(oneWeekAgo.getDate()).padStart(2, '0');",
+									"var dateOneWeekAgo = oneWeekAgoyear + \"-\" + oneWeekAgomonth + \"-\" + oneWeekAgoday;",
+									"pm.collectionVariables.set(\"DateOneWeekAgo\", dateOneWeekAgo);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (",
+									"    pm.expect(jsonData.fileName).to.eql(\"price_history.csv\") &&",
+									"    pm.expect(jsonData.status).to.eql(200) &&",
+									"    pm.expect(jsonData.filePath).is.not.empty",
+									") {",
+									"    pm.collectionVariables.set(\"FilePath6\", jsonData.filePath);",
+									"    if (pm.collectionVariables.get(\"FilePath6\")) {",
+									"        pm.test(\"Price history downloaded successful\", function () {",
+									"            pm.response.to.have.status(200);",
+									"        });",
+									"    }",
+									"} else {",
+									"    pm.test(\"Price history downloading failed\", function () {",
+									"        pm.response.to.not.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"data_feed\": [\n        \"title\",\n        \"sku\",\n        \"availability\",\n        \"gtin\",\n        \"gid\",\n        \"mpn\",\n        \"item_group_id\"\n    ],\n    \"onlyOwnProducts\": true,\n    \"productIds\": [\n        69793349\n    ],\n    \"search\": \"\",\n    \"selectedAll\": false,\n    \"unCheckedProductIds\": [],\n    \"withCompetitorStockStatus\": false,\n    \"isExactMatch\": false,\n    \"start_day\": \"{{DateOneWeekAgo}}\",\n    \"end_day\": \"{{currentDate}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/product/price-history",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"product",
+								"price-history"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PRSP-570 Open price history Copy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var csvData = pm.response.text().split(\"\\n\");",
+									"var expectedColumns = \"dates,title,sku,gtin,gid,mpn,item_group_id,Postman_account price,Postman_account availability\";",
+									"csvData.splice(9, 2);",
+									"var columns = csvData.shift();",
+									"pm.test(\"Columns checked\", function () {",
+									"    pm.expect(columns).to.be.eql(expectedColumns);",
+									"});",
+									"pm.test(\"Count of products checked\", function () {",
+									"    pm.expect(csvData.length).to.equal(8);",
+									"});",
+									"pm.test(\"Check if the rows array contains the correct dates\", function () {",
+									"    pm.expect(csvData[0]).to.include(pm.collectionVariables.get(\"DateOneWeekAgo\"));",
+									"    pm.expect(csvData[7]).to.include(pm.collectionVariables.get(\"currentDate\"));",
+									"});",
+									"pm.test(\"Check if the rows array contains the product gtin - 5709513436461\", function () {",
+									"    for (var i = 0; i < csvData.length; i++) {",
+									"        pm.expect(csvData[i]).to.include(\"5709513436461\");",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}{{FilePath6}}",
+							"host": [
+								"{{BASE_URL}}{{FilePath6}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Logout successful\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/api/v2/auth/logout",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"v2",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "[PRSP-2443 ](https://app.qase.io/case/PRSP-2443) B: Product list -> Product info -> Product price history -> Download price history with competitors -> Cheapest domain / Cheapest domain price -> Include only your products - off\n\n[PRSP-2446 ](https://app.qase.io/case/PRSP-2446) B: Product list -> Product info -> Product price history -> Download price history with competitors -> Availability -> Include only your products - off\n\n[PRSP-2445 ](https://app.qase.io/case/PRSP-2445) B: Product list -> Product info -> Product price history -> Download price history with competitors -> Cheapest domain / Cheapest domain price -> Include only your products - on\n\n[PRSP-2447 ](https://app.qase.io/case/PRSP-2447) B: Product list -> Product info -> Product price history -> Download price history with competitors -> Availability -> Include only your products - on\n\n[PRSP-2444 ](https://app.qase.io/case/PRSP-2444) B: Product list -> Product info -> Product price history -> Download price history without matches -> Cheapest domain / Cheapest domain price -> Include only your products - off\n\n[PRSP-2448 ](https://app.qase.io/case/PRSP-2448) B: Product list -> Product info -> Product price history -> Download price history without competitors -> Availability -> Include only your products - on\n\n[PRSP-31 ](https://app.qase.io/case/PRSP-31) B: Product list -> Product info -> Product price history -> Download price history with competitors\n\n[PRSP-570 ](https://app.qase.io/case/PRSP-570) B: Product list -> Product info -> Product price history -> Download price history without competitors"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "EmailAdmin",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "PasswordAdmin",
+			"value": "123456789",
+			"type": "string"
+		},
+		{
+			"key": "AccountID",
+			"value": "21289",
+			"type": "string"
+		},
+		{
+			"key": "AccountID2",
+			"value": "22257",
+			"type": "string"
+		},
+		{
+			"key": "FeedID",
+			"value": ""
+		},
+		{
+			"key": "RecPrice",
+			"value": ""
+		},
+		{
+			"key": "RecID",
+			"value": ""
+		},
+		{
+			"key": "ProductID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "WebshopID",
+			"value": ""
+		},
+		{
+			"key": "AccountIDMain",
+			"value": "21289",
+			"type": "string"
+		},
+		{
+			"key": "FilePath1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FilePath2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FilePath3",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FilePath4",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FilePath5",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FilePath6",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "currentDate",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "yesterdayDate",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "DateOneWeekAgo",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "MonthAgoDate",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductPrice",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductCostPrice",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductVat",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "NewProductVat",
+			"value": "20",
+			"type": "string"
+		},
+		{
+			"key": "NewProductCostPrice",
+			"value": "200",
+			"type": "string"
+		},
+		{
+			"key": "ManualPriceID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "CompetitorID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "CompetitorID2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductCostPr",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductVAT",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductGtin",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductQty",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ProductShipPr",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "AnyProductID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "FeedName",
+			"value": ""
+		},
+		{
+			"key": "FeedCount",
+			"value": ""
+		}
+	]
+}

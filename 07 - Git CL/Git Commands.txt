@@ -1,0 +1,94 @@
+1. `git init`:
+   - Description: Initializes a new Git repository in the current directory. It creates a `.git` directory that contains all the necessary repository files.
+   - Usage: `git init`
+
+2. `git clone <repository>`:
+   - Description: Creates a copy of an existing Git repository from a remote source (usually a URL).
+   - Usage: `git clone https://github.com/user/repository.git`
+
+3. `git status`:
+   - Description: Displays the state of the working directory and the staging area. It shows which changes have been staged, which haven't, and which files aren’t being tracked by Git.
+   - Usage: `git status`
+
+4. `git add <file>`:
+   - Description: Adds a file to the staging area, preparing it for a commit. To add all changed files, you can use `git add .`.
+   - Usage: `git add filename.txt`
+
+5. `git commit -m "<message>"`:
+   - Description: Records the changes in the repository with a descriptive message about the changes.
+   - Usage: `git commit -m "Add new feature"`
+
+6. `git push <remote> <branch>`:
+   - Description: Uploads local repository content to a remote repository. Typically used to share changes with others.
+   - Usage: `git push origin main`
+
+7. `git pull`:
+   - Description: Fetches and integrates changes from a remote repository into the current branch. It is a combination of `git fetch` and `git merge`.
+   - Usage: `git pull`
+
+8. `git fetch`:
+   - Description: Downloads objects and refs from another repository. It fetches changes but does not merge them into the current branch.
+   - Usage: `git fetch`
+
+9. `git merge <branch>`:
+   - Description: Merges the specified branch’s history into the current branch.
+   - Usage: `git merge feature-branch`
+
+10. `git branch`:
+    - Description: Lists all local branches in the repository. If a branch name is provided, it creates a new branch.
+    - Usage: `git branch` (to list branches) or `git branch new-branch` (to create a branch)
+
+11. `git checkout <branch>`:
+    - Description: Switches to the specified branch and updates the working directory to match the branch’s version.
+    - Usage: `git checkout develop`
+
+12. `git log`:
+    - Description: Shows the commit history for the current branch.
+    - Usage: `git log`
+
+13. `git reset --hard <commit>`:
+    - Description: Resets the current branch to the specified commit, discarding all changes in the working directory and staging area.
+    - Usage: `git reset --hard abc1234`
+
+14. `git revert <commit>`:
+    - Description: Creates a new commit that undoes the changes made by a specified commit, without modifying the existing commit history.
+    - Usage: `git revert abc1234`
+
+15. `git stash`:
+    - Description: Temporarily saves changes in the working directory that are not yet ready to be committed, allowing you to switch branches or pull updates without committing unfinished work.
+    - Usage: `git stash`
+
+16. `git stash apply`:
+    - Description: Applies the most recently stashed changes.
+    - Usage: `git stash apply`
+
+17. `git remote -v`:
+    - Description: Displays the URLs that Git has stored for the remotes in the repository.
+    - Usage: `git remote -v`
+
+18. `git tag <tagname>`:
+    - Description: Creates a tag in the repository at the current commit. Tags are typically used to mark release points.
+    - Usage: `git tag v1.0.0`
+
+19. `git rm <file>`:
+    - Description: Removes a file from the working directory and stages the removal for the next commit.
+    - Usage: `git rm filename.txt`
+
+20. `git diff`:
+    - Description: Shows the changes between the working directory and the staging area.
+    - Usage: `git diff`
+
+21. `git config --global user.name "Your Name"`
+    -is used to set the global username for Git on your system. This username will be associated with all your commits across all repositories unless overridden by repository-specific settings.
+
+22. `git push -u origin main`
+ is used to push your local branch named main to the remote repository named origin, and set it to track the remote branch.
+ 
+23. `git branch -vv`
+    Checking Tracking Branches: You can check which remote branch your local branch is tracking
+	
+24.`git config --global --list`
+ is used to display all the global configuration settings for Git that are currently set for the user. This includes settings like username, email, editor, and any other configurations that have been set globally.
+ 
+ 25. `git remote add origin "link_to_repo"` 
+ is used to add a remote repository to your local Git repository. This remote repository is typically where you will push your local commits and pull updates from.

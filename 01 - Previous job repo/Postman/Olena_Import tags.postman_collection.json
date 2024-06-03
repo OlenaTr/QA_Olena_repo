@@ -1,0 +1,3201 @@
+{
+	"info": {
+		"_postman_id": "df5978d7-c51a-4edf-8d93-fbbb79623859",
+		"name": "Olena_Import tags",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16702701",
+		"_collection_link": "https://blue-zodiac-391192.postman.co/workspace/Priceshape~be11bb05-d84d-4c44-a258-1daf61a1a76b/collection/16702701-df5978d7-c51a-4edf-8d93-fbbb79623859?action=share&source=collection_link&creator=16702701"
+	},
+	"item": [
+		{
+			"name": "Account Setup -> Import tags",
+			"item": [
+				{
+					"name": "Invalid data",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3163 Import tags invalid key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=317494443\",\r\n    \"product_field\": \"sku\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check notifications",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var currentDate = new Date();\r",
+											"var todayDate = currentDate.toISOString().split('T')[0];\r",
+											"pm.variables.set(\"TodayDate\", todayDate);\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check error 'Document headers and key do not match each other' \", function () {\r",
+											"    pm.expect(jsonData.items[0]).to.not.be.undefined;\r",
+											"    if (jsonData.items[0]) {\r",
+											"        pm.expect(jsonData.items[0].account_id.toString()).to.eql(pm.collectionVariables.get(\"AccountID\"));\r",
+											"        pm.expect(jsonData.items[0].action).to.eql(\"add-product-tags\");\r",
+											"        pm.expect(jsonData.items[0].data.status).to.eql(\"error\");\r",
+											"        pm.expect(jsonData.items[0].data.message).to.eql(\"Document headers and key do not match each other\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"date\": \"{{TodayDate}}\",\r\n    \"statuses\": [\r\n        \"error\"\r\n    ],\r\n    \"account_ids\": [\r\n        \"10984\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-notifications",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858543);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858543",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858543"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3163 ](https://app.qase.io/case/PRSP-3163) B: Settings->Account setup->Import tags->Google table with invalid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Closed access",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3169 Import tags closed access",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/1RsTj3Ybj1ymePqmqRU9nJKHReOB2vbBmQBiE2vpgPkM/edit#gid=0\",\r\n    \"product_field\": \"gtin\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check notifications",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var currentDate = new Date();\r",
+											"var todayDate = currentDate.toISOString().split('T')[0];\r",
+											"pm.variables.set(\"TodayDate\", todayDate);\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check error 'Failed to get document' \", function () {\r",
+											"    pm.expect(jsonData.items[0]).to.not.be.undefined;\r",
+											"    if (jsonData.items[0]) {\r",
+											"        pm.expect(jsonData.items[0].account_id.toString()).to.eql(pm.collectionVariables.get(\"AccountID\"));\r",
+											"        pm.expect(jsonData.items[0].action).to.eql(\"add-product-tags\");\r",
+											"        pm.expect(jsonData.items[0].data.status).to.eql(\"error\");\r",
+											"        pm.expect(jsonData.items[0].data.message).to.eql(\"Failed to get document\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"date\": \"{{TodayDate}}\",\r\n    \"statuses\": [\r\n        \"error\"\r\n    ],\r\n    \"account_ids\": [\r\n        \"10984\"\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-notifications",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-notifications"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3169 ](https://app.qase.io/case/PRSP-3169) B: Settings-> Account setup-> Import tags-> Closed access\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Import tags GTIN key",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3167 Import tags  GTIN key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=146476944\",\r\n    \"product_field\": \"gtin\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product tag, get id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(1);\r",
+											"        pm.collectionVariables.set(\"ProductTagID\", jsonData.labels_data.ids[0]);\r",
+											"        pm.test(\"Check successful assignment of ProductTagID\", function () {\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID\")).to.be.true;\r",
+											"        });\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag name is 'Import: gtintag' \", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        pm.expect(jsonData.props.product_labels.data).to.eql(\"Import: gtintag\");\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check deleted tag",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"var productTagId = pm.collectionVariables.get(\"ProductTagID\");\r",
+											"pm.test(\"Check Tag is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingLabel = jsonData.facets.labels.find(label => label.id === productTagId && label.name === \"Import: gtintag\");\r",
+											"    pm.expect(matchingLabel).to.be.undefined;\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"onlyFacets\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3167](https://app.qase.io/case/PRSP-3167) B: Settings-> Account setup->Import tags-> GTIN and google table with valid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Import tags SKU key with comma",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3164 Import tags  SKU key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=182059495\",\r\n    \"product_field\": \"sku\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product tag, get id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(2);\r",
+											"        pm.collectionVariables.set(\"ProductTagID\", jsonData.labels_data.ids[0]);\r",
+											"        pm.collectionVariables.set(\"ProductTagID2\", jsonData.labels_data.ids[1]);\r",
+											"        pm.test(\"Check successful assignment of ProductTagID and ProductTagID2\", function () {\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID\")).to.be.true;\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID2\")).to.be.true;\r",
+											"        });\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag names\", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        var tagNames = jsonData.props.product_labels.data.split(',').map(tag => tag.trim());\r",
+											"        pm.expect(tagNames).to.include.members([\"import SKU tag\", \"import tag\"]);\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check deleted tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Парсим тело ответа в JSON\r",
+											"var jsonData = pm.response.json();\r",
+											"var productTagId = pm.collectionVariables.get(\"ProductTagID\");\r",
+											"pm.test(\"Check ProductTagID is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});\r",
+											"var productTagId2 = pm.collectionVariables.get(\"ProductTagID2\");\r",
+											"pm.test(\"Check ProductTagID2 is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId2);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"onlyFacets\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3164 ](https://app.qase.io/case/PRSP-3164) B: Settings-> Account setup->Import tags-> SKU and google table with valid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Import tags MPN key two colums",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3165 Import tags  MPN key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=252058358\",\r\n    \"product_field\": \"mpn\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product tag, get id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(2);\r",
+											"        pm.collectionVariables.set(\"ProductTagID\", jsonData.labels_data.ids[0]);\r",
+											"        pm.collectionVariables.set(\"ProductTagID2\", jsonData.labels_data.ids[1]);\r",
+											"        pm.test(\"Check successful assignment of ProductTagID and ProductTagID2\", function () {\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID\")).to.be.true;\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID2\")).to.be.true;\r",
+											"        });\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag names\", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        var tagNames = jsonData.props.product_labels.data.split(',').map(tag => tag.trim());\r",
+											"        pm.expect(tagNames).to.include.members([\"import_MPN_tag\", \"import\"]);\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check deleted tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Парсим тело ответа в JSON\r",
+											"var jsonData = pm.response.json();\r",
+											"var productTagId = pm.collectionVariables.get(\"ProductTagID\");\r",
+											"pm.test(\"Check ProductTagID is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});\r",
+											"var productTagId2 = pm.collectionVariables.get(\"ProductTagID2\");\r",
+											"pm.test(\"Check ProductTagID2 is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId2);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"onlyFacets\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3165](https://app.qase.io/case/PRSP-3165) B: Settings-> Account setup-> Import tags-> MPN and google table with valid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Import tags ID key repeat ID",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3166 Import tags  ID key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=974292147\",\r\n    \"product_field\": \"id\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product tag, get id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858530);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(2);\r",
+											"        pm.collectionVariables.set(\"ProductTagID\", jsonData.labels_data.ids[0]);\r",
+											"        pm.collectionVariables.set(\"ProductTagID2\", jsonData.labels_data.ids[1]);\r",
+											"        pm.test(\"Check successful assignment of ProductTagID and ProductTagID2\", function () {\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID\")).to.be.true;\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID2\")).to.be.true;\r",
+											"        });\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag names\", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        var tagNames = jsonData.props.product_labels.data.split(',').map(tag => tag.trim());\r",
+											"        pm.expect(tagNames).to.include.members([\"import ID-tag\", \"import\"]);\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858530",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858530"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check deleted tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"// Парсим тело ответа в JSON\r",
+											"var jsonData = pm.response.json();\r",
+											"var productTagId = pm.collectionVariables.get(\"ProductTagID\");\r",
+											"pm.test(\"Check ProductTagID is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});\r",
+											"var productTagId2 = pm.collectionVariables.get(\"ProductTagID2\");\r",
+											"pm.test(\"Check ProductTagID2 is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingTag = jsonData.facets.labels.find(label => label.id === productTagId2);\r",
+											"    pm.expect(matchingTag).to.be.undefined;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"onlyFacets\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3166](https://app.qase.io/case/PRSP-3166) B: Settings-> Account setup-> Import tags-> ID and google table with valid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				},
+				{
+					"name": "Import tags ITEM GROUP ID key",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"AccountName\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"AccountName\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product1 NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858543);\r",
+											"});\r",
+											"pm.test(\"Check No tags\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858543",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858543"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product2 NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858532);\r",
+											"});\r",
+											"pm.test(\"Check No tags\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858532",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858532"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product3 NO tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858537);\r",
+											"});\r",
+											"pm.test(\"Check No labels\", function () {\r",
+											"    if (jsonData.labels_data) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.be.undefined;\r",
+											"    }\r",
+											"});\r",
+											"if (jsonData.labels_data && jsonData.labels_data.ids) {\r",
+											"    postman.setNextRequest(null);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858537",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858537"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3175 Enable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is ON\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3168 Import tags  Item group id key",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Product tags will be added shortly'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Product tags will be added shortly');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"url\": \"https://docs.google.com/spreadsheets/d/13V9IsyyJ9kAqgX6fkm9pOw88NWj495TBRZCSYFOy2bA/edit#gid=317494443\",\r\n    \"product_field\": \"item_group_id\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/import-product-tags",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"import-product-tags"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product1 tag, get id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858543);\r",
+											"});\r",
+											"pm.test(\"Check labels_data\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(1);\r",
+											"        pm.collectionVariables.set(\"ProductTagID\", jsonData.labels_data.ids[0]);\r",
+											"        pm.test(\"Check successful assignment of ProductTagID\", function () {\r",
+											"            pm.expect(pm.collectionVariables.has(\"ProductTagID\")).to.be.true;\r",
+											"        });\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag name is 'ITEM_GROUP_id' \", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        pm.expect(jsonData.props.product_labels.data).to.eql(\"ITEM_GROUP_id\");\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858543",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858543"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product2 tag, check id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858532);\r",
+											"});\r",
+											"pm.test(\"Check tag for item group id\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(1);\r",
+											"        pm.expect(jsonData.labels_data.ids[0]).to.eql(pm.collectionVariables.get(\"ProductTagID\"));\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag name is 'ITEM_GROUP_id' \", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        pm.expect(jsonData.props.product_labels.data).to.eql(\"ITEM_GROUP_id\");\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858532",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858532"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check product3 tag, check id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Check id\", function () {\r",
+											"    pm.expect(jsonData.id).to.eql(2858537);\r",
+											"});\r",
+											"pm.test(\"Check tag for item group id\", function () {\r",
+											"    pm.expect(jsonData.labels_data).to.be.an('object');\r",
+											"    if (jsonData.labels_data.ids) {\r",
+											"        pm.expect(jsonData.labels_data.ids).to.have.lengthOf(1);\r",
+											"        pm.expect(jsonData.labels_data.ids[0]).to.eql(pm.collectionVariables.get(\"ProductTagID\"));\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'ids' field in labels_data.\");\r",
+											"    }\r",
+											"});\r",
+											"pm.test(\"Check tag name is 'ITEM_GROUP_id' \", function () {\r",
+											"    pm.expect(jsonData.props.product_labels).to.be.an('object');\r",
+											"    if (jsonData.props.product_labels.data) {\r",
+											"        pm.expect(jsonData.props.product_labels.data).to.eql(\"ITEM_GROUP_id\");\r",
+											"    } else {\r",
+											"        pm.fail(\"No 'data' field in props.product_labels.\");\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-list/product/2858537",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-list",
+										"product",
+										"2858537"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete tag",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Tag deleted'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Tag deleted');\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/product-labels/{{ProductTagID}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"product-labels",
+										"{{ProductTagID}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check deleted tag",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"var productTagId = pm.collectionVariables.get(\"ProductTagID\");\r",
+											"pm.test(\"Check Tag is deleted\", function () {\r",
+											"    pm.expect(jsonData.facets.labels).to.be.an('array');\r",
+											"    var matchingLabel = jsonData.facets.labels.find(label => label.id === productTagId && label.name === \"ITEM_GROUP_id\");\r",
+											"    pm.expect(matchingLabel).to.be.undefined;\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"onlyFacets\": true\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/get-compare-products",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"get-compare-products"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3174 Disable Import tags",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Verify response message is 'Account settings updated'\", function () {\r",
+											"    pm.expect(jsonData.message).to.eql('Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check if import tags is OFF\", function () {\r",
+											"    var enableImportTags = jsonData.user.current_account.settings.enable_import_tags;\r",
+											"    pm.expect(enableImportTags).to.be.false;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{AccountName}}\",\r\n    \"exclude_domains\": [],\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": false,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    },\r\n    \"settings\": {\r\n        \"enable_import_tags\": false\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3175 ](https://app.qase.io/case/PRSP-3175) B: Settings ->Main options-> Enable Import Tags -> Active (Admin/RA)\n\n[PRSP-3168 ](https://app.qase.io/case/PRSP-3168) B: Settings-> Account setup-> Import tags-> ITEM GROUP ID and google table with valid data\n\n[PRSP-3174](https://app.qase.io/case/PRSP-3174) B: Settings ->Main options-> Enable Import Tags -> No active (Admin/RA)"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "EmailAdmin",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "PasswordAdmin",
+			"value": "123456789",
+			"type": "string"
+		},
+		{
+			"key": "AccountID",
+			"value": "10984",
+			"type": "string"
+		},
+		{
+			"key": "AccountName",
+			"value": ""
+		},
+		{
+			"key": "ProductTagID1",
+			"value": ""
+		},
+		{
+			"key": "ProductTagID",
+			"value": ""
+		},
+		{
+			"key": "ProductTagID2",
+			"value": ""
+		}
+	]
+}

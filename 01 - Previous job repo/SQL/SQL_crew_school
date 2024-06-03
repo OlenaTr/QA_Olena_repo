@@ -1,0 +1,1038 @@
+Установка
+1.	Перейдите на https://www.apachefriends.org/ru/index.html и скачайте файл установки xampp
+2.	Запустите установку xampp и следуйте указаниям на скриншотах (архив `xampp install`.zip)
+3.	По окончанию установки xampp будет уставлен и запущен вместе с apache и mysql
+4.	Нажмите win + r. В появившемся окне введите команду: cmd. Нажмите Enter
+5.	В терминале введите команду: cd c:\xampp\mysql\bin и нажмите Enter
+6.	В терминале введите команду: mysql.exe -u root --password и нажмите Enter дважды
+7.	Скачайте и разархивируйте архив с тестовой БД: mysqlsampledatabase.zip
+8.	В терминале mysql напечатайте команду source, нажмите пробел и перетащите файл mysqlsampledatabase.sql из архива мышкой в терминал.
+	Итогом шага, должно получится подобие такой команды: source D:\mysqlsampledatabase\mysqlsampledatabase.sql
+	Нажмите Enter. Подождите пока закончится операция и закройте терминал
+Для работы с phpmyadmin
+1.	Запустите xampp, если он не запущен
+2.	В контрольной панели запустите Apache и MySql (скриншот 9 архива `xampp install`.zip)
+1.	В браузере перейдите по ссылке: http://localhost/phpmyadmin/
+
+
+
+
+
+
+
+SELECT customerNumber, postalCode, NULLIF(postalCode, ' 530-0003') FROM `customers`  
+ORDER BY `customers`.`postalCode`  ASC;
+
+# адрес | город, штат in страна
+
+SELECT addressLine2, addressLine1, city, state, country, 
+CONCAT_WS(' ', IFNULL(addressLine2, addressLine1), '|', CONCAT_WS(', ', city, state), 'in', country) as line 
+FROM `customers`;
+
+SELECT city, creditLimit as "OLD CREDIT LIMIT", CASE WHEN city = 'Paris' THEN 0 WHEN city = 'Toulouse' THEN creditLimit ELSE creditLimit * 2 END as "NEW CREDIT LIMIT" FROM `customers` WHERE country = 'France';
+
+
+SELECT country, SUM(avg) as sum FROM (SELECT city, ANY_VALUE(country) as country, AVG(creditLimit) as avg FROM `customers` GROUP BY city) as info GROUP BY country;
+
+SELECT 
+	*, 
+	(SELECT COUNT(*) FROM orders as o WHERE c.customerNumber = o.customerNumber) as orders 
+FROM customers as c ORDER BY `orders` DESC;
+
+SELECT * FROM customers WHERE customerNumber = ANY(SELECT customerNumber FROM orders);
+
+
+
+
+
+
+
+1.	Получить сумму оплат всех покупателей из Франции
+
+	SELECT customerNumber, SUM(amount) FROM `payments` WHERE customerNumber IN (SELECT customerNumber FROM `customers` WHERE country = 'France') GROUP BY customerNumber;
+	SELECT customerNumber, SUM(amount) FROM `payments` as x WHERE EXISTS (SELECT 1 FROM `customers` as y WHERE country = 'France' AND x.customerNumber = y.customerNumber) GROUP BY customerNumber;
+	SELECT customerNumber, SUM(amount) FROM `payments` WHERE customerNumber = ANY(SELECT customerNumber FROM `customers` WHERE country = 'France') GROUP BY customerNumber;
+
+2.	Получить количество покупателей, которые отменяли заказ в разных странах
+
+	SELECT country, COUNT(customerNumber) FROM customers WHERE customerNumber IN (SELECT customerNumber FROM orders WHERE status = 'Cancelled') GROUP BY country;
+
+3.	Получить имя и адрес покупателя с самым большим кол-вом заказов
+
+	SELECT CONCAT(contactFirstName, ' ', contactLastName) as name, addressLine1 FROM customers WHERE customerNumber = (SELECT customerNumber FROM `orders` GROUP BY customerNumber ORDER BY COUNT(*) DESC LIMIT 1);
+
+4.	Получить сумму кредитных лимитов пользователей в разных странах, которые совершили оплаты более чем на 150 тысяч сумарно
+
+	SELECT country, SUM(creditLimit) FROM customers WHERE customerNumber IN (SELECT customerNumber FROM `payments` GROUP BY customerNumber HAVING SUM(amount) > 150000) GROUP BY country;
+
+	SELECT country, SUM(creditLimit) FROM customers WHERE (customerNumber, TRUE) IN (SELECT customerNumber, SUM(amount) > 150000 FROM `payments` GROUP BY customerNumber) GROUP BY country;
+
+5.	Получить список уникальных городов, в которых покупатели ожидают выполнение заказа (in process)
+
+	SELECT DISTINCT city FROM customers WHERE customerNumber IN (SELECT customerNumber FROM orders WHERE status = 'In Process');
+
+6.	Получить список уникальных почтовых кодов покупателей из США, которые делали заказы с кодом проверки, содержащим 7 символов
+
+	SELECT DISTINCT postalCode FROM customers WHERE country = 'USA' AND customerNumber IN (SELECT customerNumber FROM `payments` WHERE checkNumber LIKE '_______');
+
+7.	Поучить пользователя, первым сделавшего заказ и составить для него поздравительное сообщение о повышении кредитного лимита на 100 тысяч
+
+	SELECT CONCAT('Dear, ', customerName, ', your credit limit will be incresed from ', creditLimit, ' to ', creditLimit + 100000, ')))') FROM customers WHERE customerNumber = (SELECT customerNumber FROM `orders` ORDER BY orderDate ASC LIMIT 1);
+
+	SELECT CONCAT('Dear, ', customerName, ', your credit limit will be incresed from ', creditLimit, ' to ', creditLimit + 100000, ')))') FROM customers WHERE customerNumber = (SELECT customerNumber FROM `orders` WHERE status = 'Resolved' ORDER BY orderDate, orderNumber ASC LIMIT 1)
+
+
+
+
+
+
+
+
+(SELECT DAYNAME(paymentDate) as dayname, COUNT(*) as count, 'maximum' as state FROM `payments` GROUP BY dayname ORDER BY count DESC LIMIT 1) UNION (SELECT DAYNAME(paymentDate) as dayname, COUNT(*) as count, 'minimum' as state FROM `payments` GROUP BY dayname ORDER BY count LIMIT 1);
+
+SELECT YEAR(paymentDate) as year, MONTHNAME(paymentDate) as month, SUM(amount) as full_amount FROM `payments` GROUP BY year, month;
+
+
+SELECT TIMESTAMPDIFF(DAY, MIN(paymentDate), MAX(paymentDate)), MIN(paymentDate), MAX(paymentDate) FROM `payments`;
+
+
+SELECT * FROM `payments` WHERE DAY(paymentDate) BETWEEN 10 AND 19; 
+
+
+SELECT GROUP_CONCAT(checkNumber SEPARATOR ",\n") FROM `payments` WHERE DAYNAME(paymentDate) = 'Friday';
+
+
+SELECT CEIL(AVG(TIMESTAMPDIFF(DAY, orderDate, shippedDate))) FROM `orders` WHERE shippedDate IS NOT NULL;
+
+
+
+
+
+
+1) Получить 5 заказов с наибольшим кол-вом заказанных продуктов не зависимо от статуса заказа и отобразить полную информацию о каждом уникальном продукте 
+
+SELECT * FROM products WHERE productCode IN (
+	SELECT DISTINCT productCode FROM orderdetails as a WHERE EXISTS (
+		SELECT 1 FROM (
+			SELECT orderNumber FROM orderdetails GROUP BY orderNumber ORDER BY SUM(quantityOrdered) DESC LIMIT 5
+		) as b 
+		WHERE b.orderNumber = a.orderNumber
+	)
+);
+
+2) О том, что запрос по такому условию можно написать: Узнать из какой страны сумма оплат наибольшая
+
+SELECT SUM((SELECT SUM(amount) FROM `payments` WHERE customers.customerNumber = payments.customerNumber GROUP BY customerNumber)) as amount, country FROM `customers` GROUP BY `country`  
+ORDER BY `amount` DESC LIMIT 1;
+
+
+3) Нужно выбрать составное имя "customerNumber | contactLastName contactFirstName" случайного покупателя из каждого города, где есть офис и вычислить подарок в виде 10% от суммы всех выплат этого покупателя
+
+SELECT 
+	CONCAT_WS(' ', customerNumber, '|', contactLastName, contactFirstName) as info, 
+	(SELECT SUM(amount) * 0.1 FROM `payments` WHERE payments.customerNumber = customers.customerNumber GROUP BY customerNumber) as amount 
+FROM `customers` 
+WHERE customerNumber IN (
+	SELECT customerNumber FROM (
+		SELECT ANY_VALUE(customerNumber) as customerNumber FROM `customers` WHERE (city, country) IN (
+			SELECT city, country FROM `offices`
+		) GROUP BY city, country
+	) as x
+);
+
+
+4) Нужно выбрать составное имя "customerNumber | contactLastName contactFirstName" случайного покупателя из каждого города, где есть офис и вычислить подарок в виде 10% от суммы всех выплат этого покупателя
+
+SELECT 
+	CONCAT_WS(' ', customerNumber, '|', contactLastName, contactFirstName) as info, 
+	(SELECT SUM(amount) * 0.1 FROM `payments` WHERE payments.customerNumber = customers.customerNumber GROUP BY customerNumber) as amount 
+FROM `customers` 
+WHERE customerNumber IN (
+	SELECT customerNumber FROM (
+		SELECT ANY_VALUE(customerNumber) as customerNumber FROM `customers` WHERE (city, country) IN (
+			SELECT city, country FROM `offices`
+		) GROUP BY city, country
+	) as x
+);
+
+
+
+
+5) Подготовить список сотрудников вида: https://prnt.sc/XYVOskS5FMLW
+
+SELECT 
+	employeeNumber as "№", 
+	CONCAT(firstName, ' ', lastName) as "Full Name", 
+	email as "Email", 
+	jobTitle as "Position", 
+	IFNULL(
+		(
+			SELECT 
+				CONCAT(firstName, ' ', lastName) 
+			FROM `employees` as a 
+			WHERE a.employeeNumber = b.reportsTo
+		), 
+		"No reporter"
+	) as Reporter, 
+	(
+		SELECT 
+			GROUP_CONCAT(CONCAT_WS(' ', customerNumber, '|', contactFirstName, contactLastName) SEPARATOR "\n") 
+		FROM `customers` 
+		WHERE 
+			customers.salesRepEmployeeNumber = b.employeeNumber 
+		GROUP BY salesRepEmployeeNumber
+	) as Customers, 
+	(
+		SELECT 
+			CONCAT("Office: ", country) 
+		FROM `offices` 
+		WHERE offices.officeCode = b.officeCode
+	) as Office 
+FROM `employees` as b;
+
+
+
+
+
+
+
+1) Подготовить список покупателей для изменения их кредитного лимита по таким условиям:
+    - если почтовый код не указан, кредитный лимит должен быть сброшен до 0;
+    - если почтовый код содержит пробел, он считается ошибочным и кредитный лимит должен быть уменьшен на 20%;
+    - для граждан Ireland и Finland почтовый код должен состоять из 5 символов иначе должен быть уменьшен на 10%;
+    - если почтовый код в норме и поле addressLine2 заполнено, то кредитный лимит должен быть увеличен на 5%;
+    - для остальных покупателей всё должно остаться без изменений.
+
+
+SELECT CASE
+	WHEN postalCode IS NULL THEN 0
+	WHEN postalCode LIKE "% %" THEN creditLimit * 0.8
+    WHEN country IN ('Ireland', 'Finland') AND postalCode NOT LIKE '_____' THEN creditLimit * 0.9
+	WHEN addressLine2 IS NOT NULL THEN creditLimit * 1.05
+	ELSE creditLimit
+END as newCreditLimit, creditLimit, postalCode, country FROM `customers`;
+
+
+
+Экзамен
+1.	Выберите агрегатные функции из списка:
+	COUNT, CONCAT, CONCAT_WS, GROUP BY, ORDER BY, MIN, ANY, ANY_VALUE
+2.	Перечислите изученные функции, предназначенные для работы с NULL значением
+3.	Исправьте запрос таким образом, чтобы получить такой результат: https://prnt.sc/aD6uGeTtJzVf
+	SELECT country, COUNT(*) as COUNT, creditLimit as allCreditLimits, CONCAT_WS('-', customerNumber) as numbers FROM customers GROUP BY country ORDER BY COUNT, allCreditLimits DESC;
+4.	Напишите запрос, который позволит:
+	4.1	узнать имена служащих (employees), которые работают с клиентами (customers), выполнившими первую и последнюю оплаты (payments)
+	4.2 узнать суммарное кол-во клинтов (customers) в городах, где расположены офисы (offices), при условии, что страны одинаковы.
+		* в результате продемонстрировать так же кол-во клиентов (customers), которые не подходят под описанное выше условие
+	4.3 узнать имена всех клиентов (customers) и служащих (employees), у которых:
+		- почтовый код не указан или содержит пробел;
+		- длина почтового адреса (email) до символа '@' равна 6 символам или содержит букву 's'
+	4.4	узнать какая страна заказала наибольшее кол-во товаров (products), а так-же узнать название товара (products) наибольшее кол-во которого было заказано в этой стране
+
+
+	Ответы:
+1.	COUNT,  MIN,  ANY_VALUE
+2.	NULLIF,  IFNULL,  COALESCE
+3.	Исправьте запрос таким образом, чтобы получить такой результат: https://prnt.sc/aD6uGeTtJzVf
+SELECT country, COUNT(*) as COUNT, SUM(creditLimit) as allCreditLimits, GROUP_CONCAT(customerNumber SEPARATOR '-') as numbers FROM customers GROUP BY country ORDER BY COUNT DESC, allCreditLimits DESC;
+4.	Напишите запрос, который позволит:
+	4.1	узнать имена служащих (employees), которые работают с клиентами (customers), выполнившими первую и последнюю оплаты (payments)
+SELECT CONCAT(firstName, ' ', lastName) as name FROM employees WHERE employeeNumber IN (
+	SELECT salesRepEmployeeNumber FROM customers WHERE 
+	customerNumber = (SELECT customerNumber FROM `payments` ORDER BY paymentDate ASC LIMIT 1) OR
+	customerNumber = (SELECT customerNumber FROM `payments` ORDER BY paymentDate DESC LIMIT 1)
+);
+	4.2 узнать суммарное кол-во клиентов (customers) в городах, где расположены офисы (offices), при условии, что страны одинаковы.
+SELECT COUNT(*) FROM customers WHERE (city, country) IN (SELECT city, country FROM `offices`);
+* в результате продемонстрировать так же кол-во клиентов (customers), которые не подходят под описанное выше условие
+* SELECT COUNT(*), (city, country) IN (SELECT city, country FROM `offices`) as hasOffice FROM customers GROUP BY hasOffice;
+	4.3 узнать имена всех клиентов (customers) и служащих (employees), у которых:
+		- почтовый код не указан или содержит пробел;
+		- длина почтового адреса (email) до символа '@' равна 6 символам или содержит букву 's'
+(SELECT CONCAT(contactFirstName, ' ', contactLastName) as name FROM customers WHERE postalCode IS NULL OR postalCode LIKE "% %") UNION ALL
+(SELECT CONCAT(firstName, ' ', lastName) as name FROM employees WHERE email LIKE "______@%" OR email LIKE "%s%@%")
+	4.4	узнать какая страна заказала наибольшее кол-во товаров (products), а так-же узнать название товара (products) наибольшее кол-во которого было заказано в этой стране
+		SELECT 
+			sum, 
+			country, 
+			(SELECT productName FROM products WHERE products.productCode = x.productCode) as product 
+		FROM (
+			SELECT 
+				SUM(sum) as sum, 
+				ANY_VALUE(productCode) as productCode, 
+				country 
+			FROM (
+				SELECT 
+					SUM(quantityOrdered) as sum, 
+					productCode, 
+					(
+						SELECT (
+							SELECT country FROM customers WHERE customers.customerNumber = orders.customerNumber
+						) FROM orders 
+						WHERE orders.orderNumber = orderdetails.orderNumber
+					) as country 
+				FROM `orderdetails` 
+				GROUP BY country, productCode 
+				ORDER BY country ASC, sum DESC
+			) as x 
+			GROUP BY country ORDER BY sum DESC LIMIT 1
+		) as x;
+
+
+		JOINS
+
+(INNER) JOIN
+NATURAL JOIN
+
+OUTER JOINS: 
+    
+    LEFT (OUTER) JOIN
+    RIGHT (OUTER) JOIN
+    FULL JOIN
+
+TABLE JOINS:
+    CROSS JOIN
+    !!! SELF JOIN
+
+    1.	Получить всех покупателей, которые обслуживаются в Токийском или Лондонском офисе с суммой оплат выше 10000
+
+SELECT c.* FROM `customers` as c JOIN employees as e ON c.salesRepEmployeeNumber = e.employeeNumber JOIN offices as o ON e.officeCode = o.officeCode JOIN payments as p ON c.customerNumber = p.customerNumber WHERE o.city IN ('Tokyo', 'London') GROUP BY c.customerNumber HAVING SUM(p.amount) > 10000;
+
+2.	Получить тех покупателей, которые когда-либо совершали более трех заказов за год
+
+Вариант 1
+SELECT DISTINCT c.* FROM (SELECT YEAR(o.orderDate) as y, c.customerNumber, COUNT(o.orderNumber) as count FROM `customers` as c JOIN orders as o ON c.customerNumber = o.customerNumber GROUP BY y, c.customerNumber HAVING count > 3) as x JOIN customers as c ON c.customerNumber = x.customerNumber;
+
+Вариант 2
+SELECT * FROM customers WHERE customerNumber IN (SELECT x.customerNumber FROM (SELECT YEAR(o.orderDate) as y, c.customerNumber, COUNT(o.orderNumber) as count FROM `customers` as c JOIN orders as o ON c.customerNumber = o.customerNumber GROUP BY y, c.customerNumber HAVING count > 3) as x);
+
+Вариант 3
+SELECT DISTINCT c.* FROM `customers` as c JOIN orders as o ON c.customerNumber = o.customerNumber GROUP BY YEAR(o.orderDate), c.customerNumber HAVING COUNT(o.orderNumber) > 3;
+
+3.	Получить всех сотрудников, которые являются лидерами продаж каждого месяца, когда осуществлялись продажи, в 2005 году
+
+SELECT m, ANY_VALUE(employeeNumber) as employeeNumber, (SELECT CONCAT(lastName, ' ', firstName) FROM employees WHERE employees.employeeNumber = ANY_VALUE(x.employeeNumber)) as name FROM (SELECT DATE_FORMAT(o.orderDate, "%M") as m, COUNT(o.orderNumber) as count, e.employeeNumber FROM employees as e JOIN customers as c ON c.salesRepEmployeeNumber = e.employeeNumber JOIN orders as o ON o.customerNumber = c.customerNumber WHERE YEAR(o.orderDate) = 2005 GROUP BY m, e.employeeNumber ORDER BY m, count DESC) as x GROUP BY m;
+
+
+
+Экзамен
+1.	Выберите агрегатные функции из списка:
+	GROUP_CONCAT, ANY_VALUE, SUM, CONCAT_WS, COUNT, CASE, AVG, MIN, MAX 
+2.	Перечислите изученные функции, предназначенные для работы с NULL значением
+3.	Исправьте запрос таким образом, чтобы получить такой результат: https://prnt.sc/R6wYuR_0krLV
+SELECT MONTH(o.orderDate) as month, DAY(o.orderDate) as day, c.country, COUNT(o.orderNumber) as `orders count` FROM customers as c NATURAL JOIN orders as o ON c.customerNumber = o.customerNumber JOIN orderdetails as od GROUP BY month, c.country WHERE day = 'Saturday' OR 'Sunday' ORDER BY month, day, country, orders count DESC;
+4.	Напишите запрос, который позволит:
+	4.1	узнать количество заказов, как проблемных (которые имеют один из статусов: Cancelled, On Hold, Disputed), так и тех, с которыми проблем нет (остальные статусы) для каждого товара
+	4.2 вычислить серебряного клиента: занявшего второе место по кол-ву заказов, сделанных за последний год работы магазина. А так же всех клиентов, которые сделали очень мало заказов (использовать три значения с конца списка по кол-ву сделанных заказов)
+	4.3 вычислить всех сотрудников, у которых все их подчиненные работают в том же офисе, что и они сами
+
+
+	Ответы:
+1.	Выберите агрегатные функции из списка:
+	GROUP_CONCAT, ANY_VALUE, SUM, COUNT, AVG, MIN, MAX
+
+2.	Перечислите изученные функции, предназначенные для работы с NULL значением
+	COALESCE, NULLIF, IFNULL
+3.	Исправьте запрос таким образом, чтобы получить такой результат: https://prnt.sc/R6wYuR_0krLV
+
+Исправленный запрос:
+SELECT MONTHNAME(o.orderDate) as month, DAYNAME(o.orderDate) as day, c.country, COUNT(o.orderNumber) as "orders count" FROM customers as c NATURAL JOIN orders as o GROUP BY month, day, c.country HAVING day IN ('Saturday', 'Sunday') ORDER BY month, day, country, "orders count" DESC;
+
+4.	Напишите запрос, который позволит:
+4.1	узнать количество заказов, как проблемных (которые имеют один из статусов: Cancelled, On Hold, Disputed), так и тех, с которыми проблем нет (остальные статусы) для каждого товара
+
+Вариант 1
+SELECT p.*, COUNT(CASE 
+	WHEN o.status IN ('Cancelled', 'On Hold', 'Disputed') THEN 1 
+END) as wrong, COUNT(CASE 
+	WHEN o.status NOT IN ('Cancelled', 'On Hold', 'Disputed') THEN 1 
+END) as accepted FROM `products` as p NATURAL JOIN orderdetails as od NATURAL JOIN orders as o GROUP BY p.productCode;
+
+Вариант 2
+SELECT *, (SELECT COUNT(*) FROM orderdetails as od NATURAL JOIN orders as o WHERE od.productCode = p.productCode AND status NOT IN ('Cancelled', 'On Hold', 'Disputed')) as a, (SELECT COUNT(*) FROM orderdetails as od NATURAL JOIN orders as o WHERE od.productCode = p.productCode AND status IN ('Cancelled', 'On Hold', 'Disputed')) as c FROM `products` as p;
+
+4.2 вычислить серебрянного клиента: занявшего второе место по кол-ву заказов, сделаных за последний год работы магазина. А так же всех клиентов, которые сделали очень мало заказов (использовать три значения с конца списка по кол-ву сделанных заказов)
+(SELECT c.*, COUNT(o.orderNumber) as count FROM `customers` as c NATURAL JOIN orders as o WHERE YEAR(o.orderDate) = (SELECT MAX(YEAR(o.orderDate)) FROM orders as o) GROUP BY c.customerNumber ORDER BY count DESC LIMIT 1 OFFSET 1) UNION 
+(SELECT x.* FROM (SELECT c.*, COUNT(o.orderNumber) as count FROM `customers` as c NATURAL JOIN orders as o WHERE YEAR(o.orderDate) = (SELECT MAX(YEAR(o.orderDate)) FROM orders as o) GROUP BY c.customerNumber) as x JOIN (SELECT DISTINCT COUNT(o.orderNumber) as count FROM `customers` as c NATURAL JOIN orders as o WHERE YEAR(o.orderDate) = (SELECT MAX(YEAR(o.orderDate)) FROM orders as o) GROUP BY c.customerNumber ORDER BY count ASC LIMIT 3) as y ON x.count = y.count ORDER BY x.count DESC);
+
+4.3 вычислить всех сотрудников, у которых все их подчиненные работают в том же офисе, что и они сами
+SELECT x.employeeNumber, x.lastName, x.firstName FROM (SELECT e1.*, e1.officeCode != e2.officeCode as so FROM employees as e1 JOIN employees as e2 ON e1.employeeNumber = e2.reportsTo GROUP BY e1.employeeNumber, so) as x GROUP BY x.employeeNumber HAVING SUM(x.so) = 0;
+
+
+SELECT JSON_UNQUOTE(JSON_EXTRACT(o, CONCAT("$.", JSON_EXTRACT(JSON_KEYS(o), "$[0]")))) as val, CONCAT("$.", JSON_EXTRACT(JSON_KEYS(o), "$[0]")) as keyy FROM (SELECT JSON_OBJECTAGG(IF(customerNumber % 5 = 0, 4, 6), phone) as o FROM customers) as x;
+
+
+
+
+Пример использования JSON ключей при обращении к объекту
+
+
+SELECT 
+	o, 
+	JSON_KEYS(o) as allKeys, 
+	JSON_EXTRACT(JSON_KEYS(o), '$[0]') as firstKey, 
+	JSON_EXTRACT(o, CONCAT("$.", JSON_EXTRACT(JSON_KEYS(o), '$[0]'))) as firstKeyValue, 
+	JSON_EXTRACT(JSON_KEYS(o), CONCAT("$[", JSON_LENGTH(o) - 1, "]")) as lastKey,
+	JSON_EXTRACT(o, CONCAT("$.", JSON_EXTRACT(JSON_KEYS(o), CONCAT("$[", JSON_LENGTH(o) - 1, "]")))) as firstKeyValue
+FROM (
+	SELECT 
+		JSON_OBJECTAGG(orderDate, ids) as o 
+	FROM (
+		SELECT 
+			orderDate, 
+			JSON_ARRAYAGG(customerNumber) as ids 
+		FROM `orders` 
+		WHERE 
+			customerNumber % 5 = 0 
+		GROUP BY orderDate
+	) as x
+) as x;
+
+Домашнее задание
+Необходимо создать таблицу jsons,  которая будет содержать три столбца: id (unsigned int, ai, primary key), table (varchar 60, index), data (json)
+Для заполнения таблицы нужно подготовить запросы SELECT:
+Из таблицы customers нужно получить json в котором ключами являются страны, а значениями являются массив содержащий все города внутри этой страны.
+Из таблицы customers нужно получить json в котором ключами являются страны, а значениями являются объекты, которые содержат массив содержащий всех покупателей в этой стране, сумму кредитных лимитов покупателей и массив содержащий идентификаторы офисов, в которых обслуживаются клиенты из этой страны
+
+
+Решение домашних задачек:
+
+Задание 1
+SELECT JSON_OBJECTAGG(country, cities) FROM (SELECT country, JSON_ARRAYAGG(city) as cities FROM `customers` GROUP BY country) as x;
+
+SELECT JSON_OBJECTAGG(country, cities) FROM (SELECT country, JSON_ARRAYAGG(city) as cities FROM (SELECT DISTINCT country, city FROM `customers`) as x GROUP BY country) as x;
+
+SELECT JSON_OBJECTAGG(country, JSON_KEYS(cities)) FROM (SELECT country, JSON_OBJECTAGG(city, 1) as cities FROM `customers` GROUP BY country) as x;
+
+
+
+Задание 2
+SELECT JSON_OBJECTAGG(country, JSON_OBJECT('customerNumbers', customerNumbers, 'creditLimit', creditLimit, 'officeCodes', officeCodes)) FROM (SELECT country, JSON_ARRAYAGG(customerNumber) as customerNumbers, SUM(creditLimit) as creditLimit, JSON_ARRAYAGG(officeCode) as officeCodes FROM customers as c JOIN employees as e ON e.employeeNumber = c.salesRepEmployeeNumber GROUP BY country) as x;
+
+SELECT JSON_OBJECTAGG(country, JSON_OBJECT('customerNumbers', customerNumbers, 'creditLimit', creditLimit, 'officeCodes', JSON_KEYS(officeCodes))) FROM (SELECT country, JSON_ARRAYAGG(customerNumber) as customerNumbers, SUM(creditLimit) as creditLimit, JSON_OBJECTAGG(officeCode, 1) as officeCodes FROM customers as c JOIN employees as e ON e.employeeNumber = c.salesRepEmployeeNumber GROUP BY country) as x;
+
+
+Примеры работы с INSERT (вставка данных в таблицу)
+
+INSERT INTO `jsons`(`table`, `data`) VALUES ('customers', JSON_OBJECT('qwe', 1));
+
+INSERT INTO `jsons` SET `table` = 'customers', data = JSON_OBJECT('qwe', 1);
+
+INSERT IGNORE INTO `jsons`(`table`, `data`) VALUES ('customers', JSON_OBJECT('qwe', 1));
+
+INSERT INTO `jsons`(`table`, `data`) VALUES ('customers', JSON_OBJECT('qwe', 2)), ('customers', JSON_OBJECT('qwe', 3));
+
+INSERT INTO `jsons`(`table`, `data`) SELECT 'customers' as 'table', JSON_OBJECT('qwe', 12) as data;
+
+INSERT INTO `jsons`(`table`, `data`) SELECT 'customers', JSON_OBJECTAGG(country, JSON_OBJECT('customerNumbers', customerNumbers, 'creditLimit', creditLimit, 'officeCodes', JSON_KEYS(officeCodes))) FROM (SELECT country, JSON_ARRAYAGG(customerNumber) as customerNumbers, SUM(creditLimit) as creditLimit, JSON_OBJECTAGG(officeCode, 1) as officeCodes FROM customers as c JOIN employees as e ON e.employeeNumber = c.salesRepEmployeeNumber GROUP BY country) as x;
+
+
+
+Примеры работы с JSON_VALID
+SELECT 
+	a, 
+	a1, 
+	a -> "$[0]", 
+	a1 -> "$[0]", 
+	JSON_VALID("['q']"), 
+	JSON_VALID('["q"]'), 
+	JSON_VALID('{"q": 1}'), 
+	JSON_VALID('q'), 
+	JSON_VALID(1), 
+	JSON_VALID(TRUE), 
+	JSON_VALID(NULL), 
+	JSON_VALID('-0.272') 
+FROM (SELECT '[2, 13]' as a, JSON_ARRAY(3, 17) as a1) as x;
+
+
+
+Примеры работы с JSON_CONTAINS
+SELECT 
+	JSON_CONTAINS(o, JSON_ARRAY(17, true), "$.e"), 
+	JSON_CONTAINS(o, '1', "$.a"), 
+	JSON_CONTAINS(o, (SELECT JSON_ARRAY(17)), "$.e"), 
+	o -> "$.a" = 1,
+	o -> "$.a" = 2
+FROM (SELECT '{"a": 1, "b": 2, "c": {"d": "qwe", "qaz": 1}, "e": [17, "asdf", true]}' as o) as x; 
+
+
+Примеры работы с JSON_SEARCH
+SELECT JSON_SEARCH(o, 'one', "A") FROM (SELECT '[{"city": "A", "index": 1}, {"city": "B", "index": 3}, {"city": "C", "index": 4}]' as o) as x;
+
+SELECT JSON_SEARCH(o, 'all', "B") FROM (SELECT '[{"city": "A", "index": 1}, {"city": "B", "index": 3}, {"city": "C", "index": 4}]' as o) as x;
+
+SELECT JSON_LENGTH(JSON_SEARCH(o, 'all', "B")) FROM (SELECT '[{"city": "B", "index": 1}, {"city": "B", "index": 3}, {"city": "B", "index": 4}]' as o) as x; 
+
+JSON_SEARCH  работает только с скалярными строками 
+
+Поясняющий пример: https://prnt.sc/4Lzof2WuFb0J
+
+
+SELECT JSON_KEYS(JSON_REMOVE(data, CONCAT('$.', JSON_EXTRACT(JSON_KEYS(data), '$[4]')))) FROM `jsons` WHERE id = 1;
+
+
+Получить из таблицы jsons все id офисов для первых трех стран в второй записи.
+
+
+INSERT INTO `jsons` (`id`, `table`, `data`) VALUES (NULL, 'customers', '{\"UK\": {\"creditLimit\": 443700, \"officeCodes\": [\"7\"], \"customerNumbers\": [240, 489, 187, 324, 201]}, \"USA\": {\"creditLimit\": 2811700, \"officeCodes\": [\"1\", \"2\", \"3\"], \"customerNumbers\": [161, 157, 339, 131, 173, 424, 239, 168, 112, 363, 486, 321, 198, 319, 124, 379, 175, 204, 455, 347, 181, 205, 462, 450, 286, 328, 129, 495, 320, 456, 475, 219, 151, 487, 362, 447]}, \"Italy\": {\"creditLimit\": 388800, \"officeCodes\": [\"4\"], \"customerNumbers\": [249, 473, 278, 386]}, \"Japan\": {\"creditLimit\": 175600, \"officeCodes\": [\"5\"], \"customerNumbers\": [398, 177]}, \"Spain\": {\"creditLimit\": 517800, \"officeCodes\": [\"4\"], \"customerNumbers\": [458, 141, 484, 344, 216]}, \"Canada\": {\"creditLimit\": 228600, \"officeCodes\": [\"3\"], \"customerNumbers\": [260, 202, 233]}, \"France\": {\"creditLimit\": 932300, \"officeCodes\": [\"4\"], \"customerNumbers\": [242, 406, 250, 256, 171, 103, 350, 146, 209, 119, 353, 172]}, \"Sweden\": {\"creditLimit\": 169500, \"officeCodes\": [\"7\"], \"customerNumbers\": [448, 144]}, \"Austria\": {\"creditLimit\": 117000, \"officeCodes\": [\"4\"], \"customerNumbers\": [452, 382]}, \"Belgium\": {\"creditLimit\": 103400, \"officeCodes\": [\"4\"], \"customerNumbers\": [381, 314]}, \"Denmark\": {\"creditLimit\": 204200, \"officeCodes\": [\"4\"], \"customerNumbers\": [145, 227]}, \"Finland\": {\"creditLimit\": 285800, \"officeCodes\": [\"7\"], \"customerNumbers\": [334, 186, 311]}, \"Germany\": {\"creditLimit\": 257100, \"officeCodes\": [\"7\"], \"customerNumbers\": [415, 128, 259]}, \"Ireland\": {\"creditLimit\": 69400, \"officeCodes\": [\"7\"], \"customerNumbers\": [189]}, \"Norway \": {\"creditLimit\": 273600, \"officeCodes\": [\"7\"], \"customerNumbers\": [299, 167, 121]}, \"Australia\": {\"creditLimit\": 430300, \"officeCodes\": [\"6\"], \"customerNumbers\": [333, 114, 471, 276, 282]}, \"Hong Kong\": {\"creditLimit\": 58600, \"officeCodes\": [\"5\"], \"customerNumbers\": [211]}, \"Singapore\": {\"creditLimit\": 201700, \"officeCodes\": [\"5\", \"6\"], \"customerNumbers\": [148, 166]}, \"New Zealand\": {\"creditLimit\": 362500, \"officeCodes\": [\"6\"], \"customerNumbers\": [496, 323, 357, 412]}, \"Philippines\": {\"creditLimit\": 81500, \"officeCodes\": [\"5\"], \"customerNumbers\": [385]}, \"Switzerland\": {\"creditLimit\": 141300, \"officeCodes\": [\"4\"], \"customerNumbers\": [298, 376]}}')
+
+
+SELECT 
+	JSON_MERGE_PRESERVE(
+		data -> "$[0].officeCodes", 
+		data -> "$[1].officeCodes", 
+		data -> "$[2].officeCodes"
+	) 
+FROM (
+	SELECT data -> "$.*" as data FROM `jsons` WHERE id = 2
+) as x;
+
+SELECT 
+	JSON_MERGE_PRESERVE(
+		JSON_EXTRACT(data -> "$.*", '$[0].officeCodes'), 
+		JSON_EXTRACT(data -> "$.*", '$[1].officeCodes'), 
+		JSON_EXTRACT(data -> "$.*", '$[2].officeCodes')
+	) 
+FROM `jsons` WHERE id = 2;
+
+
+SELECT 
+	JSON_OBJECTAGG(productCode, data) 
+FROM (
+	SELECT 
+		productCode, 
+		JSON_OBJECTAGG(status, total_price) as data 
+	FROM (
+		SELECT 
+			productCode, 
+			status, 
+			SUM(quantityOrdered * priceEach) as total_price 
+		FROM orders as o NATURAL JOIN orderdetails as od 
+		GROUP BY productCode, status
+	) as x 
+	GROUP BY productCode
+) as x;
+
+
+SELECT 
+	JSON_OBJECTAGG(y, data) 
+FROM (
+    SELECT y, JSON_OBJECTAGG(status, c / c_total * 100) as data FROM 
+    (SELECT YEAR(orderDate) as y, status, COUNT(*) as c FROM orders as o NATURAL JOIN orderdetails as od GROUP BY y, status) as x
+    NATURAL JOIN
+    (SELECT YEAR(orderDate) as y, COUNT(*) as c_total FROM orders as o NATURAL JOIN orderdetails as od GROUP BY y) as xx
+    GROUP BY y
+) as x;
+
+
+SELECT 
+	JSON_OBJECTAGG(y, data) 
+FROM (
+	SELECT 
+		y, JSON_OBJECTAGG(status, JSON_OBJECT('count', c / c_total * 100, 'price', s / s_total * 100)) as data 
+	FROM 
+		(SELECT YEAR(orderDate) as y, status, COUNT(*) as c, SUM(quantityOrdered * priceEach) as s FROM orders as o NATURAL JOIN orderdetails as od GROUP BY y, status) as x
+		NATURAL JOIN
+		(SELECT YEAR(orderDate) as y, COUNT(*) as c_total, SUM(quantityOrdered * priceEach) as s_total FROM orders as o NATURAL JOIN orderdetails as od GROUP BY y) as xx
+	GROUP BY y
+) as x;
+
+
+
+
+
+Функции и примеры
+
+CREATE FUNCTION `PLUS_FIVE`(_ARG_ONE INT) RETURNS INT
+BEGIN
+	RETURN _ARG_ONE + 5;
+END
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `PLUS_FIVE`(_ARG_ONE INT) RETURNS INT
+BEGIN
+	RETURN _ARG_ONE + 5;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `SUMMA`(_A INT, _B INT) RETURNS INT
+BEGIN
+	RETURN _A + _B;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `DIFF`(_A INT, _B INT) RETURNS INT
+BEGIN
+	IF (_A > _B) THEN
+		RETURN _A - _B;
+	END IF;
+
+	RETURN _B - _A;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `CHECKA`(_A INT, _B INT) RETURNS INT
+BEGIN
+	DECLARE _MIN INT;
+	DECLARE _MAX INT;
+
+	IF (_A > _B) THEN
+		SET _MAX = _A;
+		SET _MIN = _B;
+	ELSE
+		SET _MAX = _B;
+		SET _MIN = _A;
+	END IF;
+
+	RETURN _MAX * 2 + _MIN;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `LOOPER`(_A INT) RETURNS INT
+BEGIN
+	DECLARE _RESULT INT DEFAULT 1;
+	DECLARE _I INT DEFAULT 1;
+
+	WHILE (_I <= _A) DO
+		SET _RESULT = _RESULT * _I;
+		SET _I = _I + 1;
+	END WHILE;
+
+	RETURN _RESULT;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `COUNT_TABLESA`() RETURNS INT
+BEGIN
+	DECLARE _RESULT INT DEFAULT 0;
+
+	SET _RESULT = _RESULT + (SELECT COUNT(*) FROM customers);
+
+	SET _RESULT = _RESULT + (SELECT COUNT(*) FROM orders);
+
+	SET _RESULT = _RESULT + (SELECT COUNT(*) FROM payments);
+
+	RETURN _RESULT;
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `JSON_SUM`(_JSON1 JSON, _JSON2 JSON) RETURNS INT
+BEGIN
+	RETURN (SELECT JSON_LENGTH(_JSON1)) + (SELECT JSON_LENGTH(_JSON2));
+END $$
+DELIMITER ;
+
+--------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `JSON_SUM2`(_JSON1 JSON, _JSON2 JSON) RETURNS INT
+BEGIN
+	RETURN JSON_LENGTH(_JSON1) + JSON_LENGTH(_JSON2);
+END $$
+DELIMITER ;
+
+
+
+DELIMITER $$
+CREATE FUNCTION `MYCONCAT`(RAW1 TEXT, RAW2 TEXT) RETURNS TEXT
+BEGIN
+RETURN CONCAT(RAW1, " ", RAW2);
+END $$
+DELIMITER ;
+
+----------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `MYDEC`(A DECIMAL(15, 2)) RETURNS INT
+BEGIN
+	RETURN FLOOR(A / 10);
+END $$
+DELIMITER ;
+
+----------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `MYARR` (RAW TEXT) RETURNS JSON
+BEGIN
+	RETURN JSON_EXTRACT(CONCAT('[', RAW, ']'), "$[*]");
+END $$
+DELIMITER ;
+
+----------------------------------------------------
+
+DELIMITER $$
+CREATE FUNCTION `MYUNIQUE`(ARR JSON) RETURNS JSON
+BEGIN
+	DECLARE RESULT JSON DEFAULT JSON_OBJECT();
+    DECLARE VAL TEXT;
+    DECLARE I INT DEFAULT 0;
+
+	WHILE (I < JSON_LENGTH(ARR)) DO
+    	SET VAL = JSON_UNQUOTE(JSON_EXTRACT(ARR, CONCAT('$[', I, ']')));
+		SET RESULT = JSON_SET(RESULT, CONCAT('$."', VAL, '"'), VAL);
+		SET I = I + 1;
+	END WHILE;
+    
+    RETURN JSON_KEYS(RESULT);
+END $$
+DELIMITER ;
+
+
+Процедуры и примеры:
+
+
+DELIMITER $$
+CREATE PROCEDURE `MY_PROC`()
+BEGIN
+	INSERT INTO `customers` (`customerNumber`, `customerName`, `contactLastName`, `contactFirstName`, `phone`, `addressLine1`, `addressLine2`, `city`, `state`, `postalCode`, `country`, `salesRepEmployeeNumber`, `creditLimit`) VALUES ('12', 'Atelier 222', 'Schmitt 22', 'Carine ', '40.32.2555', '54, rue Royale', NULL, 'Nantes', NULL, '44000', 'France', '1370', '21000.00');
+END $$
+DELIMITER ;
+
+----------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `MY_PROC2`(IN _ID INT, IN _NAME VARCHAR(80))
+BEGIN
+	INSERT INTO `customers` (`customerNumber`, `customerName`, `contactLastName`, `contactFirstName`, `phone`, `addressLine1`, `addressLine2`, `city`, `state`, `postalCode`, `country`, `salesRepEmployeeNumber`, `creditLimit`) VALUES (_ID, _NAME, 'Schmitt 22', 'Carine ', '40.32.2555', '54, rue Royale', NULL, 'Nantes', NULL, '44000', 'France', '1370', '21000.00');
+END $$
+DELIMITER ;
+
+----------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `MY_STATISTICS`()
+BEGIN
+	INSERT INTO jsons (`table`, `data`) SELECT 'statistics', JSON_OBJECTAGG(table_name, n_rows) FROM `innodb_table_stats` WHERE database_name = 'classicmodels';
+END $$
+DELIMITER ;
+
+----------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `DELETE_ROW`()
+BEGIN
+	DECLARE _ID INT;
+	SET _ID = (SELECT id FROM jsons ORDER BY id DESC LIMIT 1);
+	DELETE FROM jsons WHERE id = _ID;
+END $$
+DELIMITER ;
+
+----------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `CHANGE_TABLE`(IN _OLD_NAME VARCHAR(60), IN _NEW_NAME VARCHAR(60))
+BEGIN
+    UPDATE jsons SET `table` = _NEW_NAME WHERE `table` = _OLD_NAME;
+END $$
+DELIMITER ;
+
+
+Курсоры и примеры:
+
+
+DELIMITER $$
+CREATE PROCEDURE `...`() 
+BEGIN
+    
+    DECLARE ... ;
+    DECLARE ... ;
+
+    DECLARE _C BOOLEAN DEFAULT TRUE;
+    DECLARE _B CURSOR FOR SELECT ... ;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET _C = FALSE;
+    
+    OPEN _B;
+    
+    WHILE (_C) DO
+        FETCH _B INTO ... ;
+        
+        # do smth
+        
+    END WHILE;
+    
+    CLOSE _B;
+    
+END $$
+DELIMITER ;
+
+
+Nikita Shvydkyi
+  3 months ago
+DELIMITER $$
+CREATE PROCEDURE `MY_CURR`() 
+BEGIN
+
+	DECLARE _CUSTOMER_NUMBER INT;
+    DECLARE _CUSTOMER_CITY TEXT;
+
+	DECLARE _DONE INT DEFAULT 0;
+	DECLARE _A CURSOR FOR SELECT customerNumber, city FROM customers WHERE country = 'France';
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET _DONE = 1;
+
+    OPEN _A;
+		WHILE (NOT _DONE) DO 
+    		FETCH _A INTO _CUSTOMER_NUMBER, _CUSTOMER_CITY;
+            IF (NOT _DONE) THEN
+                INSERT INTO jsons SET `table` = 'dynamic', `data` = JSON_OBJECT('_CUSTOMER_NUMBER', _CUSTOMER_NUMBER, '_CUSTOMER_CITY', _CUSTOMER_CITY);
+            END IF;
+    	END WHILE;
+    
+    CLOSE _A;
+END $$
+DELIMITER ;
+
+
+Функции и процедуры:
+
+
+DELIMITER $$
+CREATE FUNCTION `MYSUM` ( _O JSON ) RETURNS INT
+BEGIN
+	DECLARE _I INT DEFAULT 0;
+	DECLARE _RESULT INT DEFAULT 0;
+
+	WHILE ( _I < JSON_LENGTH(_O) ) DO
+        SET _RESULT = _RESULT + JSON_EXTRACT(_O, CONCAT('$[', _I, ']'));
+		SET _I = _I + 1;
+	END WHILE;
+	
+	RETURN _RESULT;
+END $$
+DELIMITER ;
+
+----------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `MYDEL` ( _NUM INT)
+BEGIN
+	DECLARE _ID INT DEFAULT (SELECT id FROM jsons LIMIT 1 OFFSET _NUM);
+	DELETE FROM jsons WHERE id >= _ID;
+END $$
+DELIMITER ;
+
+----------------------------------------------
+
+DELIMITER $$
+CREATE PROCEDURE `MYDEL3` ( _NUM INT, _TABLE TEXT )
+BEGIN
+	DECLARE _ID INT DEFAULT (SELECT id FROM jsons ORDER BY id DESC LIMIT 1);
+	
+    IF (_NUM > _ID) THEN
+		# SET _ID = (SELECT id FROM jsons ORDER ASC LIMIT 1);
+		SELECT id INTO _ID FROM jsons LIMIT 1;
+	END IF;
+
+	UPDATE jsons SET `table` = _TABLE WHERE id = _ID;
+END $$
+DELIMITER ;
+
+
+
+
+
+
+Триггеры, микро пример:
+
+DELIMITER $$
+CREATE TRIGGER `mytrig` AFTER UPDATE ON customers FOR EACH ROW
+BEGIN
+
+INSERT INTO jsons SET `table` = 'logs', `data` = JSON_OBJECT();
+
+END $$
+DELIMITER ;
+
+
+Триггеры и события:
+
+
+DELIMITER $$
+CREATE TRIGGER `mymy` BEFORE INSERT ON customers FOR EACH ROW
+BEGIN
+
+DECLARE _C BOOLEAN;
+
+SELECT COUNT(*) > 0 INTO _C FROM customers WHERE country = NEW.country;
+
+IF (_C = FALSE) THEN
+	INSERT INTO countries SET country = NEW.country;
+END IF;
+
+END $$
+DELIMITER ;
+
+------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE TRIGGER `mymymy` AFTER DELETE ON customers FOR EACH ROW
+BEGIN
+
+DECLARE _C BOOLEAN;
+
+SELECT COUNT(*) > 0 INTO _C FROM customers WHERE country = OLD.country;
+
+IF (_C = FALSE) THEN
+	DELETE FROM countries WHERE country = OLD.country;
+END IF;
+
+END $$
+DELIMITER ;
+
+------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE EVENT `logger` ON SCHEDULE AT '2023-11-07 13:42:30' DO
+BEGIN
+	INSERT INTO jsons SET `table` = 'qwe', `data` = JSON_OBJECT();
+END $$
+DELIMITER ;
+
+------------------------------------------------------------------------
+
+DELIMITER $$
+CREATE EVENT `loggerAutoHour` ON SCHEDULE EVERY 1 HOUR STARTS '2023-11-07 00:00:00' ON COMPLETION PRESERVE DO
+BEGIN
+	INSERT INTO jsons SET `table` = 'hour', `data` = JSON_OBJECT();
+END $$
+DELIMITER ;
+
+------------------------------------------------------------------------
+
+
+Чтобы включить планировщик используйте запрос:
+SET GLOBAL event_scheduler="ON"
+
+
+Заметки по индексации:
+
+
+SELECT * FROM countries WHERE id = 6;
+
+Сервер БД - это приложение, которое работает с текстовыми файлами, их анализирует и выполняет над ними и их данными некоторые операции
+
+БД - это текстовые файлы
+Таблица - 1 текстовый файл
+
+--------------------------------------------------------------
+
+Вся информация на ЖД хранится в блоках
+
+ЖД
+
+Созданы файлы 1, 2, 3 и распределены по блокам ЖД
+| 1 | 1 | 1 | 2 | 2 | 2 | 2 | 3 | | |
+
+Фрагментация ЖД после удаления файла 2
+| 1 | 1 | 1 | | | | | 3 | | |
+
+Неравномерное распределение файла 4 по блокам
+| 1 | 1 | 1 | 4 | 4 | 4 | 4 | 3 | 4 | 4 |
+
+--------------------------------------------------------------
+
+Проверка записей в таблице:
+
+1 В
+6 В
+2 В
+3 В
+4 В
+7 В
+5 В
+
+--------------------------------------------------------------
+
+Primary Key => id => уникальный идентификатор записи
+
+MySql гернерирует виртуальный Primary Key для таблицы
+
+Вывод: в таблица MySQL всегда нужно указывать Primary Key
+
+countries
+
+id name    code
+
+1  France  16
+2  Italy   22
+4  German  9
+5  USA     11
+6  Poland  44
+7  Ukraine 3
+
+--------------------------------------------------------------
+
+Primary Key Index
+
+1 - addr
+2 - addr
+3
+4
+5
+6
+7
+
+--------------------------------------------------------------
+
+Index code
+
+3 7
+9 4
+11 5
+16 1
+22 2
+44 6
+
+--------------------------------------------------------------
+
+SELECT * FROM countries WHERE code = 22 # миним. кол-во действий = кол-во записей
+
+SELECT * FROM countries WHERE code = 22 # с индексом мин. кол-во действий = прибл в 10 раз меньше чем кол-во записей при N > 100
+
+--------------------------------------------------------------
+
+Index name_code
+
+France16 1
+German9  4
+Italy22  2
+Poland33 8
+Poland44 6
+Ukraine3 7
+USA11    5
+
+--------------------------------------------------------------
+
+SELECT * FROM countries WHERE code = 22 => не оптимальный поиск по Индекс / индекс используется, но работает плохо
+
+SELECT * FROM countries WHERE name = Italy => Italy22
+
+SELECT * FROM countries WHERE name = Italy AND code = 22 => Italy22
+
+--------------------------------------------------------------
+
+SELECT * FROM countries WHERE name = Poland AND code > 22 => работает оптимально
+
+SELECT * FROM countries WHERE name > Poland AND code = 22 => не оптимальный поиск по Индекс / индекс используется, но работает плохо
+
+
+

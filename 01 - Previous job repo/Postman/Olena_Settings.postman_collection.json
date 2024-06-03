@@ -1,0 +1,780 @@
+{
+	"info": {
+		"_postman_id": "00800685-aeb0-4639-8c3f-89fff0dcaae0",
+		"name": "Olena_Settings",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16702701",
+		"_collection_link": "https://blue-zodiac-391192.postman.co/workspace/Priceshape~be11bb05-d84d-4c44-a258-1daf61a1a76b/collection/16702701-00800685-aeb0-4639-8c3f-89fff0dcaae0?action=share&source=collection_link&creator=16702701"
+	},
+	"item": [
+		{
+			"name": "Account and user information",
+			"item": [
+				{
+					"name": "PRSP-3160 Change account name",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get accName",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var accountName = jsonData.user.current_account.name;\r",
+											"pm.collectionVariables.set(\"Account2Name\", accountName);\r",
+											"pm.test(\"Account name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"Account2Name\")).to.equal(accountName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3160 Change account name",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Account settings updated'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Account settings updated');\r",
+											"});\r",
+											"pm.test(\"Check current account name\", function () {\r",
+											"    pm.expect(jsonData.user.current_account.name).to.eql(\"Change test\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Change test\",\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": true,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID2}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID2}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3160 Change account name back",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Account settings updated'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Account settings updated');\r",
+											"});\r",
+											"var account2Name = pm.collectionVariables.get(\"Account2Name\");\r",
+											"pm.test(\"Check current account name is Account2Name\", function () {\r",
+											"    pm.expect(jsonData.user.current_account.name).to.eql(account2Name);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{Account2Name}}\",\r\n    \"competitor_settings\": {\r\n        \"price\": \"gs-product-price\",\r\n        \"fillGsDashboard\": true,\r\n        \"fillAmazonDashboard\": false,\r\n        \"showPosition\": false,\r\n        \"deliveryPrice\": true\r\n    }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/accounts/{{AccountID2}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"accounts",
+										"{{AccountID2}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3160 ](https://app.qase.io/case/PRSP-3160) B: Settings -> Account and user information -> Change \"Account Name\" (Admin/RA)"
+				},
+				{
+					"name": "PRSP-3159 Change User name",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get userName, userID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var userId = jsonData.user.id;\r",
+											"var userName = jsonData.user.name;\r",
+											"pm.collectionVariables.set(\"UserID\", userId);\r",
+											"pm.collectionVariables.set(\"UserName\", userName);\r",
+											"pm.test(\"User ID is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"UserID\")).to.equal(userId);\r",
+											"});\r",
+											"pm.test(\"User Name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"UserName\")).to.equal(userName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3159 Change users name",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Settings saved'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Settings saved');\r",
+											"});\r",
+											"pm.test(\"Check user's current name\", function () {\r",
+											"    pm.expect(jsonData.user.name).to.eql(\"Change name\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"Change name\",\r\n    \"email\": \"{{EmailAdmin}}\",\r\n    \"settings\": {\r\n        \"perpage\": 25,\r\n        \"productFields\": [],\r\n        \"difference_value\": \"highest\"\r\n    },\r\n    \"default_account_id\": [\r\n        10984\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/users/{{UserID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"users",
+										"{{UserID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3159 Change users name back",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Settings saved'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Settings saved');\r",
+											"});\r",
+											"var userName = pm.collectionVariables.get(\"UserName\");\r",
+											"pm.test(\"Check current user name is UserName\", function () {\r",
+											"    pm.expect(jsonData.user.name).to.eql(userName);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{UserName}}\",\r\n    \"email\": \"{{EmailAdmin}}\",\r\n    \"settings\": {\r\n        \"perpage\": 25,\r\n        \"productFields\": [],\r\n        \"difference_value\": \"highest\"\r\n    },\r\n    \"default_account_id\": [\r\n        10984\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/users/{{UserID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"users",
+										"{{UserID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3159 ](https://app.qase.io/case/PRSP-3159) B: Settings -> Account and user information -> Change \"Name\" (Admin/RA)"
+				},
+				{
+					"name": "PRSP-3161 Change User Email",
+					"item": [
+						{
+							"name": "Log in",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Login successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{EmailAdmin}}\",\n    \"password\": \"{{PasswordAdmin}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/login",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"login"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Switch to account, get userName, userID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Switch to account successful\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"var userId = jsonData.user.id;\r",
+											"var userName = jsonData.user.name;\r",
+											"pm.collectionVariables.set(\"UserID\", userId);\r",
+											"pm.collectionVariables.set(\"UserName\", userName);\r",
+											"pm.test(\"User ID is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"UserID\")).to.equal(userId);\r",
+											"});\r",
+											"pm.test(\"User Name is assigned correctly\", function () {\r",
+											"    pm.expect(pm.collectionVariables.get(\"UserName\")).to.equal(userName);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/switch-account/{{AccountID2}}",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"switch-account",
+										"{{AccountID2}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3161 Change users email",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Settings saved'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Settings saved');\r",
+											"});\r",
+											"pm.test(\"Check user's current email\", function () {\r",
+											"    pm.expect(jsonData.user.email).to.eql(\"qaqa@qa.qa\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{UserName}}\",\r\n    \"email\": \"qaqa@qa.qa\",\r\n    \"settings\": {\r\n        \"perpage\": 25,\r\n        \"productFields\": [],\r\n        \"difference_value\": \"highest\"\r\n    },\r\n    \"default_account_id\": [\r\n        10984\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/users/{{UserID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"users",
+										"{{UserID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PRSP-3161 Change users email back",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"var jsonData = pm.response.json();\r",
+											"pm.test(\"Response message is 'Settings saved'\", function () {\r",
+											"    pm.response.to.have.jsonBody('message', 'Settings saved');\r",
+											"});\r",
+											"var userEmail = pm.collectionVariables.get(\"EmailAdmin\");\r",
+											"pm.test(\"Check current user email is EmailAdmin\", function () {\r",
+											"    pm.expect(jsonData.user.email).to.eql(userEmail);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"name\": \"{{UserName}}\",\r\n    \"email\": \"{{EmailAdmin}}\",\r\n    \"settings\": {\r\n        \"perpage\": 25,\r\n        \"productFields\": [],\r\n        \"difference_value\": \"highest\"\r\n    },\r\n    \"default_account_id\": [\r\n        10984\r\n    ]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/users/{{UserID}}/settings",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"users",
+										"{{UserID}}",
+										"settings"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Logout successful\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{BASE_URL}}/api/v2/auth/logout",
+									"host": [
+										"{{BASE_URL}}"
+									],
+									"path": [
+										"api",
+										"v2",
+										"auth",
+										"logout"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "[PRSP-3161 ](https://null) B: Settings -> Account and user information -> Change \"Email\" (Admin/RA)"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "EmailAdmin",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "PasswordAdmin",
+			"value": "123456789",
+			"type": "string"
+		},
+		{
+			"key": "Account2Name",
+			"value": "Postman_account_change_feed",
+			"type": "string"
+		},
+		{
+			"key": "AccountID2",
+			"value": "11078",
+			"type": "string"
+		},
+		{
+			"key": "UserID",
+			"value": ""
+		},
+		{
+			"key": "UserName",
+			"value": ""
+		}
+	]
+}

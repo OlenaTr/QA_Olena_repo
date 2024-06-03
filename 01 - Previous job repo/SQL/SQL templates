@@ -1,0 +1,270 @@
+//Пошук матчів в акаунті, що спаршені з not found
+
+SELECT m.* FROM `matchings` m JOIN competitors c ON m.competitor_id = c.id WHERE m.account_id = 9494 AND c.deleted_at IS NOT NULL AND JSON_UNQUOTE(JSON_EXTRACT(c.scraper_info, '$.status')) = 'not found' AND m.product_id IN (SELECT id FROM products WHERE deleted_at IS NULL) ORDER BY `created_at` DESC
+
+// Кількість матчів з домена та домен у конкретній доменній групі
+
+SELECT `domain_id`, COUNT(domain_id) AS count FROM `matchings` Where account_id = 11012 and domain_id in (Select domain_id from `domain_groups_domains` where domain_group_id =61) GROUP BY `domain_id` ORDER BY count DESC;
+
+// Пошук товарів в акаунті у яких мінялась кост прайс більше одного разу за день
+
+SELECT product_id, history_date FROM product_price_history WHERE account_id = 10744 AND field_name LIKE 'cost_price' AND history_date >= '2023-01-01' GROUP BY product_id, history_date HAVING COUNT(*) > 1
+
+// Зміна кост прайс та СРП з якого на який, в який час сгруповано по урл та джейтін
+
+SELECT
+    pc.URL AS URL,
+    pc.GTIN AS GTIN,
+    pc.cost_price_history,
+    sl.SRP_price_history
+FROM
+    (
+        SELECT
+            p.link AS URL,
+            p.gtin AS GTIN,
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'old_cost_price', pph.old_price,
+                    'new_cost_price', pph.new_price,
+                    'created_at', DATE_FORMAT(pph.created_at, '%Y-%m-%d %H:%i:%s')
+                )
+            ) AS cost_price_history
+        FROM
+            product_price_history AS pph
+        JOIN
+            products AS p
+        ON
+            pph.product_id = p.id
+        WHERE
+            pph.account_id = 10744
+        AND
+            pph.field_name = 'cost_price'
+        AND
+            pph.created_at >= '2023-08-26 00:00:00'
+        GROUP BY
+            URL, GTIN
+    ) AS pc
+RIGHT JOIN
+    (
+        SELECT
+            p.link AS URL,
+            p.gtin AS GTIN,
+            JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'created_at', DATE_FORMAT(pl.created_at, '%Y-%m-%d %H:%i:%s'),
+                    'old_SRP', JSON_UNQUOTE(pl.data -> '$."extra_data"."old"."RRP"'),
+                    'new_SRP', JSON_UNQUOTE(pl.data -> '$."extra_data"."new"."RRP"')
+                )
+            ) AS SRP_price_history
+        FROM
+            product_logger AS pl
+        JOIN
+            products AS p
+        ON
+            pl.product_id = p.id
+        WHERE
+            p.account_id = 10744
+        AND
+            pl.data ->>'$."extra_data"."new"."RRP"' IS NOT NULL
+        AND
+            pl.created_at >= '2023-08-26 00:00:00'
+        GROUP BY
+            URL, GTIN
+    ) AS sl
+ON
+    pc.URL = sl.URL AND pc.GTIN = sl.GTIN
+
+
+
+
+//Кількість матчів з відповідною валютою в акаунті
+
+    SELECT COUNT(id), currency FROM `competitors` where id in (Select competitor_id from matchings where account_id = 11012) and deleted_at is NUll GROUP BY currency;
+
+//
+SELECT * FROM `competitors` WHERE `account_id` = 11012 AND `currency` IS NULL AND `deleted_at` IS NULL ORDER BY `currency` ASC;
+
+//
+SELECT DISTINCT * FROM products WHERE id IN ( SELECT product_id FROM matchings WHERE competitor_id IN ( SELECT id FROM competitors WHERE account_id = 9628 AND currency LIKE 'EUR' AND deleted_at IS NULL ) );
+
+//
+SELECT account_id, JSON_OBJECTAGG(currency, `count`) AS currency_counts FROM ( SELECT account_id, currency, COUNT(id) AS `count` FROM competitors WHERE id IN (SELECT competitor_id FROM matchings WHERE account_id = competitors.account_id) AND deleted_at IS NULL AND currency IS NOT NULL GROUP BY account_id, currency HAVING `count` IS NOT NULL ) AS subquery GROUP BY account_id;
+
+//
+SELECT * FROM `scraper_push_notifies` WHERE CAST(JSON_UNQUOTE(JSON_EXTRACT(note, '$[0].counts.gtinsIgnored')) AS CHAR) != 'null' ORDER BY `created_at` DESC;
+
+//
+SELECT * FROM `scraper_push_notifies` WHERE CAST(JSON_UNQUOTE(JSON_EXTRACT(note, '$[0].counts.gtinsIgnored')) AS CHAR) != 'null' AND JSON_UNQUOTE(JSON_EXTRACT(data, '$.sitemap_name')) NOT LIKE 'googleShopping%' ORDER BY `created_at` DESC;
+
+
+//
+SELECT gid, COUNT(*) as count FROM products where account_id = 13122 GROUP BY gid HAVING COUNT(*) > 1;
+
+//
+SELECT *
+FROM `amazon_asins`
+WHERE DATE(created_at) = CURRENT_DATE;
+
+//
+SELECT *
+FROM `google_analytics`
+INNER JOIN products ON products.ean = google_analytics.sku
+WHERE google_analytics.account_id = 13246
+  AND analytics_date = "2023-07-03";
+
+
+//
+  SELECT * FROM `feeds`where account_id in (SELECT account_id FROM `shopify_feeds`) and geotarget_id IN (select id from geotargets where vat !=25) ORDER BY `feeds`.`created_at` DESC
+
+//
+  SELECT * FROM `workers_logger` WHERE JSON_CONTAINS(JSON_EXTRACT(`dumps`, '$[*].data.feedId'), '4298') ORDER BY `workers_logger`.`created_at` DESC
+
+//количество изменений сток статуса за 24 часа
+
+  select count(`competitor_availability_history`.`id`) as aggregate from `competitor_availability_history` inner join matchings on `matchings`.`competitor_id` = `competitor_availability_history`.`competitor_id` inner join sphinx_products on `matchings`.`product_id` = `sphinx_products`.`id` inner join competitors USE INDEX (PRIMARY) on `competitor_availability_history`.`competitor_id` = `competitors`.`id` inner join domains on `competitors`.`domain_id` = `domains`.`id` where competitor_availability_history.account_id = 9726 and `competitor_availability_history`.`availability` is not null and `competitor_availability_history`.`created_at` >= '2023-06-28 16:49:56' and `competitors`.`domain_id` in (117, 30, 156, 205, 16, 18, 2379, 1105, 58, 10955, 281) and `competitors`.`domain_id` in (117, 30, 156, 205, 16, 18, 2379, 1105, 58, 10955, 281)
+
+
+//
+select `domain_groups`.`id`, `name`, JSON_ARRAYAGG(domain_id) as domain_ids from `domain_groups` inner join domain_groups_domains on `domain_groups_domains`.`domain_group_id` = `domain_groups`.`id` where domain_groups.account_id = 9726 group by `domain_groups`.`id`
+
+
+//
+SELECT * FROM `competitor_price_history`where competitor_id in (Select id from competitors where domain_id = 58 and deleted_at is null) and account_id =9726 and created_at >= NOW() - INTERVAL 24 hour ORDER BY created_at DESC
+
+//
+UPDATE `competitors` SET clear_price = CASE WHEN id = 1963523655 THEN 97 WHEN id = 1963523654 THEN 85 END WHERE id IN (1963523654, 1963523655);
+
+//
+SELECT * FROM `app_priceshape_dk` WHERE `route` LIKE 'api/v2/import-manual-competitors' and `execution_time` <> 'null' ORDER BY `app_priceshape_dk`.`execution_time` DESC
+
+//
+SELECT * FROM `app_priceshape_dk` WHERE (route LIKE "%import-manual-fields%" OR route LIKE "import-manual-competitors") AND created_at >= NOW() - INTERVAL 80 MINUTE ORDER BY `execution_time` DESC
+
+//
+SELECT * FROM `feeds` Where `options` ->>'$."useItemGroupId"' ="yes"
+
+//
+SELECT * FROM `feeds`WHERE `ga_data` ->>'$."apiType"' = "GA4"
+
+//
+SELECT `account_id`, COUNT(domain_id) AS count FROM `exclude_domains` GROUP BY `account_id` ORDER BY count DESC
+
+//
+UPDATE accounts SET exclude_domains = (SELECT JSON_ARRAYAGG(domain_id) FROM exclude_domains WHERE account_id = 9345) WHERE id = 9345;
+
+//
+UPDATE accounts SET exclude_domains = 
+(SELECT JSON_ARRAYAGG(domain_id) FROM (
+    SELECT domain_id FROM exclude_domains
+    WHERE account_id = 9345
+    UNION 
+    SELECT domain_id FROM (SELECT domain_id, COUNT(DISTINCT(competitor_id)) AS c from matchings WHERE account_id = 9345 GROUP BY domain_id HAVING c <= 10 ORDER BY c DESC) AS t
+    ) as tmp) WHERE id = 9345
+
+//
+INSERT INTO exclude_domains (account_id, domain_id, created_at) SELECT 9345, domain_id, CURRENT_TIMESTAMP FROM (SELECT domain_id FROM exclude_domains WHERE account_id = 9345 UNION SELECT domain_id FROM (SELECT domain_id, COUNT(DISTINCT(competitor_id)) AS c from matchings WHERE account_id = 9345 GROUP BY domain_id HAVING c <= 10 ORDER BY c DESC) AS t ) as tmp
+
+//
+DELETE FROM competitors WHERE account_id = 9345 AND domain_id IN (SELECT domain_id FROM exclude_domains WHERE account_id = 9345)
+
+//
+SELECT v.*, geotargets.name FROM (SELECT DISTINCT geotarget_id, concat(LEFT(ipv6, 15), ':') _ipv6 FROM `google_shopping_links_logger` WHERE created_at > '2022-12-01' ORDER BY geotarget_id) v JOIN geotargets ON geotargets.id = v.geotarget_id AND v._ipv6 = geotargets.ipv6_scraper
+
+//
+SELECT v.*, geotargets.name FROM (SELECT DISTINCT geotarget_id, concat(LEFT(ipv6, 15), ':') _ipv6 FROM `google_shopping_links_logger` WHERE created_at > '2022-12-01' ORDER BY geotarget_id) v JOIN geotargets ON geotargets.id = v.geotarget_id AND v._ipv6 = geotargets.ipv6_scraper
+
+//
+SELECT * FROM `competitors` WHERE `account_id` =17031 and `prices` ->>'$."normal-price"' is not NULL
+
+//
+SELECT * FROM `app_priceshape_dk` WHERE `route` LIKE 'api/v2/competitors/{competitor_id}/edit' AND `data`->>'$."url"'= 'https://app.priceshape.dk/api/v2/competitors/1792287354/edit' ORDER BY `app_priceshape_dk`.`created_at` DESC
+
+
+//
+INSERT INTO `country_settings`(`geotarget_id`, `type`, `webshop_name`, `webshop_url`) 
+VALUES 
+(8719,'amazonASIN','Amazon ASIN','https://www.amazon.nl'),
+(9650,'amazonASIN','Amazon ASIN','https://www.amazon.pl'),
+(11213,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(11229,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(11728,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(12660,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(12681,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(14132,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(30706,'amazonASIN','Amazon ASIN','https://www.amazon.com'),
+(65865,'amazonASIN','Amazon ASIN','http://amazon.com.be'),
+(65902,'amazonASIN','Amazon ASIN','https://www.amazon.es'),
+(65951,'amazonASIN','Amazon ASIN','https://www.amazon.it'),
+(85967,'amazonASIN','Amazon ASIN','https://www.amazon.com')
+
+
+//
+SELECT p.gtin AS PRODUCT_GTIN, p.gid as PRODUCT_GID, pl.name AS TAG_NAME FROM products p inner join `products_product_labels` ppl on p.id = ppl.product_id inner join product_labels pl on ppl.`product_label_id` = pl.id where p.account_id = 11392 and p.deleted_at is not null
+
+//
+SELECT * FROM `competitors` WHERE gs_prices->>'$."gs-product-original-price"' is not null and gs_prices->>'$."gs-product-price"'!= price
+
+//
+SELECT * FROM `competitors` WHERE `account_id` = 10179 AND `sitemap_type` = 'manualCompetitors' AND `created_at` BETWEEN '2022-12-20 00:00:42' AND '2022-12-20 13:29:42'
+
+//
+SELECT ftp_accesses FROM `feeds` WHERE ftp_accesses->>'$."ftpHost"' != 'null'
+
+//
+SELECT p.id, p.account_id,  p.price_strategy_id, GET_PRIORITY_PRODUCT_PRICE_STRATEGY(p.id) as _calcPriceStrategyId FROM `products` as p where p.id = 669018 AND p.deleted_at is null HAVING IS_DIFFERENT(p.price_strategy_id, _calcPriceStrategyId)
+
+//
+SELECT * FROM `competitors`
+JOIN exclude_domains ON exclude_domains.account_id = competitors.account_id AND competitors.domain_id = exclude_domains.domain_id
+WHERE competitors.account_id = XXXXX;
+
+//
+SELECT accounts.id, accounts.name FROM `accounts` INNER JOIN account_cron ON accounts.id = account_cron.account_id WHERE accounts.competitor_settings->>'$."price"'= 'gs-product-price' AND account_cron.type= 'googleShopping' AND account_cron.is_active= 'yes' AND accounts.deleted_at is Null
+
+//
+SELECT p.clear_price - GET_COMPETITOR_MAX_PRICE(matchings_data->>'$.competitors') as val FROM sphinx_products p WHERE p.account_id = 9959 AND p.matchings_data is not null having (val <= -5 AND val >= -15)
+
+//
+SELECT * FROM `sphinx_products` WHERE account_id = 9959 and google_analytics_data is not null and google_analytics_data->>'$."60".average_profit_per_sale' <= 50
+
+
+//
+SELECT COUNT(id) FROM `product_price_changes` WHERE created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+ 
+SELECT COUNT(id) FROM `product_price_changes` WHERE origin = 'new_strategy_price' AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+
+//Manual
+
+SELECT COUNT(id) FROM `product_price_changes` WHERE origin = 'new_user_price' AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+//Changes of all prices types
+
+SELECT COUNT(id) FROM `product_price_history` WHERE (field_name = 'price' OR field_name = 'sales_price') AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+
+// Number of price changes from competitors so far today
+SELECT COUNT(id) FROM `competitor_logger` WHERE data->>'$."price"' IS not null AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+
+//Number of stock status changes from competitors so far today
+SELECT COUNT(id) FROM `competitor_logger` WHERE data->>'$."availability"' IS not null AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00'
+
+//In stock -> Out of stock
+SELECT COUNT(id) FROM `competitor_logger` WHERE data->>'$."availability"."new"' = 'out of stock' AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 
+SELECT count(id) FROM `competitor_availability_history` WHERE availability = 'out of stock' AND created_at >= '2022-11-22 23:00:00' AND created_at <= '2022-11-23 23:00:00')
+
+// Number of products we've scraped so far today
+SELECT COUNT(*) FROM `scraping_pages` join scraping_jobs on scraping_pages.scraping_job_id = scraping_jobs.id where scraping_pages.status = 'processed' and scraping_jobs.finished_at >= '2022-11-22 23:00:00'and scraping_jobs.finished_at <= '2022-11-23 23:00:00'
+
+// Додавання геотаргету
+INSERT INTO `geotargets`(`id`, `name`, `canonical_name`, `timezone`, `country_code`, `currency`, `country`, `vat`) VALUES (7,"Dubai","Dubai,Dubai,United Arab Emirates","Asia/Dubai","AE","AED","","","")
+
+//
+SELECT *, diff_data->>'$.processing_time' processing_time FROM `sphinx_products_logger` ORDER BY `processing_time` DESC
+
+//
+SELECT * FROM `app_priceshape_dk` WHERE `route` LIKE 'api/v2/price-strategies/add-relations' AND `switch_account_id` = 11368 AND `auth_user_id` LIKE '11483' ORDER BY `created_at` DESC
+
+//
+SELECT products.gtin AS ProductGTIN, products.gid AS ProductGID, competitors.link AS CompetitorLink FROM (products INNER JOIN matchings ON products.id=matchings.product_id) INNER JOIN competitors ON matchings.competitor_id=competitors.id WHERE competitors.account_id=10340 AND competitors.webshop_sitemap_id=4001
+
+//
+SELECT COUNT(*) FROM `logs` WHERE host='app.priceshape.dk' AND route='/api/v2/get-compare-products' AND data->>'$."params"."isExactMatch"'='true' AND auth_user_id is not null
+

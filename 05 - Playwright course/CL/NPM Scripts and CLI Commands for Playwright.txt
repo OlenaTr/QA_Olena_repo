@@ -1,0 +1,119 @@
+ NPM Scripts
+
+Add these scripts to your `package.json` file for easier execution:
+
+json
+{
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "report": "npx playwright show-report",
+    "trace:retain": "npx playwright test --trace retain-on-failure",
+    "trace:on": "npx playwright test --trace on",
+    "update-snapshots": "npx playwright test --update-snapshots",
+    "install-deps": "npx playwright install-deps"
+  }
+}
+
+
+ CLI Commands
+
+Here are some useful CLI commands for running and managing Playwright tests:
+
+1. Run all tests:
+   sh
+   npx playwright test
+   
+
+2. Run tests in headed mode:
+   sh
+   npx playwright test --headed
+   
+
+3. Run tests with debug mode:
+   sh
+   npx playwright test --debug
+   
+
+4. Show the test report:
+   sh
+   npx playwright show-report
+   
+
+5. Run tests with tracing enabled (for all tests):
+   sh
+   npx playwright test --trace on
+   
+
+6. Run tests with tracing enabled (retain trace for failed tests only):
+   sh
+   npx playwright test --trace retain-on-failure
+   
+
+7. Run tests with tracing enabled (for retries only):
+   sh
+   npx playwright test --trace retry-with-trace
+   
+
+8. Update snapshots:
+   sh
+   npx playwright test --update-snapshots
+   
+
+9. Install dependencies (browser binaries, etc.):
+   sh
+   npx playwright install-deps
+   
+
+10. Run a specific test file:
+    sh
+    npx playwright test path/to/your/test-file.spec.ts
+    
+
+11. Run tests with a specific project (e.g., chromium, firefox, webkit):
+    sh
+    npx playwright test --project=chromium
+    
+
+12. Run tests with a specific grep filter (e.g., by tag):
+    sh
+    npx playwright test --grep @yourTag
+    
+
+ Combining Options
+
+You can combine multiple options to customize your test runs further. For example, to run tests in headed mode with tracing enabled only for failed tests, use:
+
+sh
+npx playwright test --headed --trace retain-on-failure
+
+
+ Using `playwright.config.ts`
+
+You can also configure Playwright settings in the `playwright.config.ts` file for more control and convenience. Here's an example configuration that enables tracing and sets the default browser to Chromium:
+
+typescript
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  use: {
+    browserName: 'chromium',
+    trace: 'retain-on-failure', // Options: 'on', 'off', 'retain-on-failure', 'retry-with-trace'
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { browserName: 'chromium' },
+    },
+    {
+      name: 'firefox',
+      use: { browserName: 'firefox' },
+    },
+    {
+      name: 'webkit',
+      use: { browserName: 'webkit' },
+    },
+  ],
+});
+

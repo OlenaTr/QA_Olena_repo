@@ -1,0 +1,199 @@
+ 1) OAuth2 Authorization
+
+To set up OAuth2 authorization, you need to configure environment variables and use them in pre-scripts and tests.
+
+Pre-script for obtaining the token
+
+
+// Set environment variables for obtaining the token
+pm.environment.set("client_id", "your_client_id");
+pm.environment.set("client_secret", "your_client_secret");
+pm.environment.set("grant_type", "client_credentials");
+pm.environment.set("token_url", "https://example.com/oauth2/token");
+
+// Configure the request to get the token
+var tokenRequest = {
+    url: pm.environment.get("token_url"),
+    method: 'POST',
+    header: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: {
+        mode: 'urlencoded',
+        urlencoded: [
+            { key: "client_id", value: pm.environment.get("client_id") },
+            { key: "client_secret", value: pm.environment.get("client_secret") },
+            { key: "grant_type", value: pm.environment.get("grant_type") }
+        ]
+    }
+};
+
+// Send the request
+pm.sendRequest(tokenRequest, function (err, response) {
+    if (err) {
+        console.log(err);
+    } else {
+        var jsonResponse = response.json();
+        pm.environment.set("access_token", jsonResponse.access_token);
+    }
+});
+```
+
+Setting authorization in requests
+
+In each request where authorization is needed, add to Headers:
+
+
+Authorization: Bearer {{access_token}}
+
+
+2) Generating random email, password, and confirm password for sign-in form
+
+Pre-script for generating data
+
+
+// Generate a random email
+var randomEmail = `user${Math.floor(Math.random() * 10000)}@example.com`;
+pm.environment.set("randomEmail", randomEmail);
+
+// Generate a random password
+var randomPassword = Math.random().toString(36).slice(-8);
+pm.environment.set("randomPassword", randomPassword);
+
+// Confirm the password
+pm.environment.set("confirmPassword", randomPassword);
+
+ Using generated data in the request body
+
+json
+{
+    "email": "{{randomEmail}}",
+    "password": "{{randomPassword}}",
+    "confirm_password": "{{confirmPassword}}"
+}
+
+
+ Tests to verify successful sign-in
+
+
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Response contains token", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property("token");
+});
+
+Example of a complete request with pre-scripts and tests
+
+ Pre-script:
+
+
+// Pre-script for authorization
+pm.environment.set("client_id", "your_client_id");
+pm.environment.set("client_secret", "your_client_secret");
+pm.environment.set("grant_type", "client_credentials");
+pm.environment.set("token_url", "https://example.com/oauth2/token");
+
+var tokenRequest = {
+    url: pm.environment.get("token_url"),
+    method: 'POST',
+    header: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: {
+        mode: 'urlencoded',
+        urlencoded: [
+            { key: "client_id", value: pm.environment.get("client_id") },
+            { key: "client_secret", value: pm.environment.get("client_secret") },
+            { key: "grant_type", value: pm.environment.get("grant_type") }
+        ]
+    }
+};
+
+pm.sendRequest(tokenRequest, function (err, response) {
+    if (err) {
+        console.log(err);
+    } else {
+        var jsonResponse = response.json();
+        pm.environment.set("access_token", jsonResponse.access_token);
+    }
+});
+
+// Pre-script for generating random data
+var randomEmail = `user${Math.floor(Math.random() * 10000)}@example.com`;
+pm.environment.set("randomEmail", randomEmail);
+
+var randomPassword = Math.random().toString(36).slice(-8);
+pm.environment.set("randomPassword", randomPassword);
+
+pm.environment.set("confirmPassword", randomPassword);
+
+
+ Request:
+
+POST https://example.com/api/signin
+Content-Type: application/json
+Authorization: Bearer {{access_token}}
+
+{
+    "email": "{{randomEmail}}",
+    "password": "{{randomPassword}}",
+    "confirm_password": "{{confirmPassword}}"
+}
+```
+
+Tests:
+
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Response contains token", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.property("token");
+});
+
+
+
+
+3) Test for JSON Response Structure
+This test checks that the response has the expected keys.
+
+pm.test("Response has correct keys", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData).to.have.all.keys('id', 'name', 'email', 'created_at');
+});
+
+
+
+4) JSON Schema Validation
+Using tv4 or Ajv to validate that the response JSON conforms to a specified schema.
+
+Test for JSON Schema Validation
+
+var schema = {
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "integer"
+        },
+        "name": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "created_at": {
+            "type": "string",
+            "format": "date-time"
+        }
+    },
+    "required": ["id", "name", "email", "created_at"]
+};
+
+var jsonData = pm.response.json();
+pm.test('Schema is valid', function() {
+    pm.expect(tv4.validate(jsonData, schema)).to.be.true;
+});

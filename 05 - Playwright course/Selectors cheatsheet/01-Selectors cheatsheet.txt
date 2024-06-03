@@ -1,0 +1,192 @@
+Certainly! Below is a detailed cheat sheet for CSS selectors and X-Path selectors:
+
+## CSS Selectors Cheat Sheet
+
+ Basic Selectors
+
+- Element Selector: Selects all instances of the given element.
+  css
+  p { color: blue; }  /* Selects all <p> elements */
+  
+
+- ID Selector: Selects an element with a specific ID.
+  css
+  #unique { font-size: 20px; }  /* Selects element with id="unique" */
+  
+
+- Class Selector: Selects all elements with a specific class.
+  css
+  .highlight { background-color: yellow; }  /* Selects all elements with class="highlight" */
+  
+
+ Attribute Selectors
+
+- [attribute]: Selects elements with a specific attribute.
+  css
+  [type] { border: 1px solid black; }  /* Selects all elements with a 'type' attribute */
+  
+
+- [attribute=value]: Selects elements with a specific attribute value.
+  css
+  [type="text"] { color: red; }  /* Selects all elements with type="text" */
+  
+
+- [attribute^=value]: Selects elements whose attribute value starts with a specified value.
+  css
+  [type^="text"] { color: green; }  /* Selects all elements whose type attribute starts with "text" */
+  
+
+- [attribute$=value]: Selects elements whose attribute value ends with a specified value.
+  css
+  [href$=".pdf"] { color: purple; }  /* Selects all <a> elements with href ending in ".pdf" */
+  
+
+- [attribute*=value]: Selects elements whose attribute value contains a specified value.
+  css
+  [class*="button"] { background-color: orange; }  /* Selects all elements with class containing "button" */
+  
+
+ Pseudo-Class Selectors
+
+- :first-child: Selects the first child of an element.
+  css
+  p:first-child { font-weight: bold; }  /* Selects the first <p> child in any parent */
+  
+
+- :last-child: Selects the last child of an element.
+  css
+  p:last-child { font-style: italic; }  /* Selects the last <p> child in any parent */
+  
+
+- :nth-child(n): Selects the nth child of an element.
+  css
+  li:nth-child(2) { color: blue; }  /* Selects the second <li> child in any parent */
+  
+
+- :nth-of-type(n): Selects the nth child of a specific type.
+  css
+  p:nth-of-type(2) { color: red; }  /* Selects the second <p> element in any parent */
+  
+
+- :not(selector): Selects all elements that do not match the given selector.
+  css
+  :not(.exclude) { margin: 10px; }  /* Selects all elements that do not have class="exclude" */
+  
+
+ Combinator Selectors
+
+- Descendant Selector: Selects all elements that are descendants of a specified element.
+  css
+  div p { color: gray; }  /* Selects all <p> elements inside any <div> */
+  
+
+- Child Selector: Selects all elements that are direct children of a specified element.
+  css
+  div > p { color: green; }  /* Selects all <p> elements that are direct children of any <div> */
+  
+
+- Adjacent Sibling Selector: Selects the element that is immediately preceded by the former element.
+  css
+  h1 + p { color: blue; }  /* Selects the first <p> element immediately after any <h1> */
+  
+
+- General Sibling Selector: Selects all elements that are preceded by the former element.
+  css
+  h1 ~ p { color: blue; }  /* Selects all <p> elements preceded by any <h1> */
+  
+
+## X-Path Selectors Cheat Sheet
+
+ Basic X-Path
+
+- Select by Element: Selects all instances of the given element.
+  xpath
+  //div  /* Selects all <div> elements */
+  
+
+- Select by Attribute: Selects elements with a specific attribute.
+  xpath
+  //input[@id='search']  /* Selects <input> elements with id="search" */
+  
+
+ Path Expressions
+
+- Absolute Path: Selects elements from the root node.
+  xpath
+  /html/body/div  /* Selects the <div> element that is a child of <body> */
+  
+
+- Relative Path: Selects elements relative to the current node.
+  xpath
+  //div  /* Selects all <div> elements in the document */
+  
+
+ Predicates
+
+- Index Predicate: Selects elements based on their index.
+  xpath
+  //ul/li[1]  /* Selects the first <li> element in any <ul> */
+  
+
+- Attribute Predicate: Selects elements with a specific attribute value.
+  xpath
+  //input[@type='text']  /* Selects all <input> elements with type="text" */
+  
+
+ Functions
+
+- text(): Selects elements with specific text content.
+  xpath
+  //a[text()='Home']  /* Selects <a> elements with text content "Home" */
+  
+
+- contains(): Selects elements whose attribute contains a specific value.
+  xpath
+  //a[contains(@href, 'contact')]  /* Selects <a> elements where href attribute contains "contact" */
+  
+
+ Axes
+
+- ancestor: Selects all ancestors of the current node.
+  xpath
+  //div/ancestor::body  /* Selects the <body> ancestor of any <div> */
+  
+
+- child: Selects all children of the current node.
+  xpath
+  /html/body/child::div  /* Selects all <div> elements that are children of <body> */
+  
+
+- descendant: Selects all descendants of the current node.
+  xpath
+  //div/descendant::p  /* Selects all <p> elements that are descendants of any <div> */
+  
+
+- following-sibling: Selects all following siblings of the current node.
+  xpath
+  //h1/following-sibling::p  /* Selects all <p> elements that are following siblings of any <h1> */
+  
+
+- preceding-sibling: Selects all preceding siblings of the current node.
+  xpath
+  //h1/preceding-sibling::p  /* Selects all <p> elements that are preceding siblings of any <h1> */
+  
+
+ Advanced Selectors
+
+- Union: Combines multiple X-Path expressions.
+  xpath
+  //h1 | //h2  /* Selects all <h1> and <h2> elements */
+  
+
+- OR: Selects elements matching either of two conditions.
+  xpath
+  //input[@type='text'] | //input[@type='email']  /* Selects all <input> elements with type="text" or type="email" */
+  
+
+- AND: Selects elements matching both conditions.
+  xpath
+  //input[@type='text' and @name='username']  /* Selects <input> elements with type="text" and name="username" */
+  
+
+This cheat sheet covers the essential selectors you might need for CSS and X-Path. Both CSS selectors and X-Path expressions are powerful tools for selecting and styling elements within web documents.
