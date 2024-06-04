@@ -1,0 +1,114 @@
+ Jenkins Basics
+- Start Jenkins: `java -jar jenkins.war`
+- Access Jenkins: Open a browser and navigate to `http://localhost:8080`
+
+ Commonly Used URLs
+- Jenkins Dashboard: `http://localhost:8080/`
+- Manage Jenkins: `http://localhost:8080/manage`
+- View a Job: `http://localhost:8080/job/<job_name>`
+- Job Configuration: `http://localhost:8080/job/<job_name>/configure`
+
+ Job Configuration
+- Create a New Job: Click on `New Item` on the Jenkins dashboard.
+- Build Triggers: Set triggers to build the job automatically.
+  - Poll SCM: `H/5 * * * *` (every 5 minutes)
+  - Build Periodically: `H 2 * * 1-5` (2 AM on weekdays)
+- Build Steps: Define steps to execute during the build.
+  - Execute Shell: Custom shell script
+  - Invoke Ant: Run Ant build scripts
+  - Invoke Gradle Script: Run Gradle build scripts
+
+ Environment Variables
+- Common Environment Variables:
+  - `BUILD_ID`: The current build ID
+  - `BUILD_NUMBER`: The current build number
+  - `JOB_NAME`: The job name
+  - `WORKSPACE`: The workspace directory
+
+ Pipelines
+- Declarative Pipeline: 
+  ```groovy
+  pipeline {
+      agent any
+      stages {
+          stage('Build') {
+              steps {
+                  echo 'Building...'
+              }
+          }
+          stage('Test') {
+              steps {
+                  echo 'Testing...'
+              }
+          }
+          stage('Deploy') {
+              steps {
+                  echo 'Deploying...'
+              }
+          }
+      }
+  }
+  ```
+
+- Scripted Pipeline: 
+  ```groovy
+  node {
+      stage('Build') {
+          echo 'Building...'
+      }
+      stage('Test') {
+          echo 'Testing...'
+      }
+      stage('Deploy') {
+          echo 'Deploying...'
+      }
+  }
+
+ Jenkins CLI
+- Jenkins CLI: `java -jar jenkins-cli.jar -s http://localhost:8080/ <command>`
+  - Common Commands:
+    - `build <job_name>`: Trigger a build
+    - `get-job <job_name>`: Get job configuration XML
+    - `create-job <job_name>`: Create a new job
+    - `delete-job <job_name>`: Delete a job
+
+ Managing Plugins
+- Install Plugin: `Manage Jenkins` > `Manage Plugins` > `Available` tab
+- Update Plugin: `Manage Jenkins` > `Manage Plugins` > `Updates` tab
+- Uninstall Plugin: `Manage Jenkins` > `Manage Plugins` > `Installed` tab
+
+ User Management
+- Create User: `Manage Jenkins` > `Manage Users` > `Create User`
+- Manage Roles: Requires Role-based Authorization Strategy Plugin
+  - `Manage Jenkins` > `Manage and Assign Roles`
+
+ Security
+- Configure Global Security: `Manage Jenkins` > `Configure Global Security`
+  - Enable security, set security realm, and authorization
+- CSRF Protection: Ensure that CSRF protection is enabled.
+
+ Backup and Restore
+- Backup Jenkins Home Directory: Regularly backup the `$JENKINS_HOME` directory.
+- Restore: Replace the `$JENKINS_HOME` directory with your backup.
+
+ Groovy Scripts
+- Run Groovy Script: `Manage Jenkins` > `Script Console`
+ groovy
+  println Jenkins.instance.items
+
+ Notifications
+- Email Notifications: Configure in `Manage Jenkins` > `Configure System`
+  - Set SMTP server and default email suffix
+  - Add `E-mail Notification` and `Post-build Actions` in jobs
+
+ Common Issues
+- Jenkins Not Starting: Check logs at `/var/log/jenkins/jenkins.log`
+- Build Failures: Check the build logs for errors
+- Out of Memory: Increase the Java heap size:
+  - Edit `/etc/default/jenkins` (or relevant configuration file)
+  - Add `JAVA_ARGS="-Xmx2048m"`
+
+ Tips
+- Use Agents (Slaves): Offload build tasks to other machines.
+- Lockable Resources Plugin: Manage access to shared resources.
+- Blue Ocean Plugin: Provides a modern interface for Jenkins.

@@ -1,0 +1,34 @@
+ID: A unique identifier for the bug report.
+Summary: A brief description of the issue.
+Description: A detailed description of the problem, answering the following questions:
+- What happened? (description of the issue)
+- Where did it happen? (specify the module, page, function, etc.)
+- When did it happen? (time or application version)
+Preconditions: The steps or states that need to be established before the bug can be reproduced.
+Steps to Reproduce: Step-by-step actions to reproduce the problem.
+Step 1: ...
+Step 2: ...
+Step 3: ...
+Actual Result: What actually happened.
+Expected Result: What should have happened.
+Environment: Conditions under which the bug was found (OS, browser, software version, etc.).
+Priority: The importance level of fixing the bug.
+Severity: The impact of the bug on the system.
+Attachments: Screenshots, logs, and other files that help understand the problem.
+
+Template
+
+Description: 
+Preconditions: 
+1)
+2)
+3)
+Steps to Reproduce: 
+1)
+2)
+3)
+Actual Result:
+Expected Result: 
+Environment::
+(Addition info)
+Attachment:

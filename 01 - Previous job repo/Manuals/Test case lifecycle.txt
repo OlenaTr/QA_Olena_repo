@@ -1,0 +1,58 @@
+Test Case Lifecycle
+
+A Test Case is a test artifact designed to perform a set of actions and conditions necessary to verify a specific functionality of a software system.
+
+The Test Case lifecycle includes the following stages:
+
+1. Creation: The Test Case is developed based on requirements and specifications.
+2. Ready for execution: The Test Case is marked as "Actual", can be included in test runs, and becomes available for testing.
+3. Requires updating: The Test Case is considered outdated for various reasons and marked as "Update".
+4. Deprecated: The Test Case is no longer relevant and not used in the current version of the product.
+
+Thus, the states and statuses of test cases may change as the project and testing process evolve.
+
+Test Case Status
+
+In relation to functionality:
+
+New - The Test Case is considered "New" when it is developed for the first time to test new functionality or a product component. This Test Case is intended to verify newly implemented functionality that has not been tested before.
+
+Active - The Test Case is considered "Active" when it is current and used for regular product testing. This Test Case is applied to verify functionality that remains unchanged or rarely changes.
+
+Requires updating - The Test Case is marked as "Update" when it is considered outdated for various reasons and is undergoing revision. This may include changes in logic, test case steps, data, expected results, or other details to make it relevant for the new product version.
+
+In relation to the content of the Test Case:
+
+Actual - The Test Case is considered "Actual" when it corresponds to the current version of the software product or functionality it tests. This Test Case is used to test new versions or changes in the product.
+
+Draft - This status is used when the Test Case has just been created or requires editing and can be changed. "Draft" marks empty cases, cases for functionality under development, or cases that need updating.
+
+Deprecated - The Test Case is considered deprecated when it is no longer relevant and not used in the current version of the software product. This may happen if the functionality tested by this case has been removed, changed, or replaced in the new product version. Deprecated cases are also marked for duplicates of active cases (for example, from the "Elements" suite). "Deprecated" Test Cases remain in the QASE system in the "Deprecated test cases" suite and can be useful if it is necessary to revert to a previous version of the product.
+
+Common combinations:
+
+Draft + New -> newly created case under development;
+Draft + Update -> created case requiring updating;
+Draft + Active -> not current, to be reviewed, updated, or moved to Deprecated;
+Actual + Active -> ready for use;
+Deprecated + Any value -> deprecated, should be moved to the "Deprecated test cases" suite.
+
+Test Case States During Testing
+
+Planned (Ready for testing) - A test case is in this state when it is either explicitly included in the plan for the upcoming testing iteration or, at a minimum, ready for execution.
+
+Not tested - This state replaces the previous (planned). A test case being in this state means it is ready for execution but has not been executed.
+
+In progress - If a test case requires a long time to execute, it may be transitioned to this state to emphasize that it is currently being executed, with results expected soon. If a test case execution takes a short time, this state is usually skipped, and the test case is immediately moved to one of the following states: "failed", "passed", or "blocked".
+
+Skipped - There are situations where the execution of a test case is postponed due to changes in testing logic or the need for environment changes or additional settings.
+
+Failed - This state indicates that during the execution of the test case, a defect was found where the expected result of at least one step of the test case does not match the actual result. If a defect unrelated to the test case steps and their expected results is accidentally discovered during the execution of the test case, the test case is considered to have passed (however, a defect report is naturally created for the discovered defect).
+
+Passed - This state indicates that during the execution of the test case, no defects related to discrepancies between expected and actual results of its steps were found.
+
+Blocked - This state indicates that for some reason, the execution of the test case is not possible (typically due to the presence of a defect that prevents the implementation of a certain user scenario).
+
+Closed - An extremely rare case where the test run is closed, but the test case remains in the states "failed/passed/blocked/skipped". The test case is moved to this state to emphasize that all actions with it are completed in this testing iteration.
+
+Requires rework (Invalid) - In this state (or from it), a test case can be transitioned at any time if an error is found in it, if the requirements it was written against change, or if another situation arises that does not allow the test case to be considered suitable for execution and transitioning to other states.

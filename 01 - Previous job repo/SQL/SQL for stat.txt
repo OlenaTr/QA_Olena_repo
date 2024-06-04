@@ -1,0 +1,123 @@
+Создание аккаунтов 
+
+До сентября 2021 года - 231 аккаунт, из них, на данный момент, удалено - 4.
+SELECT count(id) FROM `accounts` WHERE created_at < '2021-09-01' AND name not like '%QA%'
+С сентября 2021 по февраль 2022 - 129 аккаунтов, из них, на данный момент, удален - 1.
+SELECT COUNT(id) FROM `accounts` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01' AND name not like '%QA%'
+С февраля 2022 по сентябрь 2022 - 505 аккаунтов, из них, на данный момент, удалено - 119.
+SELECT COUNT(id) FROM `accounts` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01' AND name not like '%QA%'
+
+
+Создание пользователей 
+
+До сентября 2021 года - 428 пользователей, из них, на данный момент, удалено - 10.
+SELECT count(id) FROM `users` WHERE created_at < '2021-09-01' AND name not like '%QA%' 
+С сентября 2021 по февраль 2022 - 246 пользователей, из них, на данный момент, удалено - 2.
+SELECT COUNT(id) FROM `users` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01' AND name not like '%QA%'
+С февраля 2022 по сентябрь 2022 - 667 пользователей, из них, на данный момент, удалено - 36.
+SELECT COUNT(id) FROM `users` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01' AND name not like '%QA%'
+
+Создание стратегий
+
+До сентября 2021 года - 979 стратегий
+SELECT count(id) FROM `product_price_strategies` WHERE created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 539 стратегий.
+SELECT count(id) FROM `product_price_strategies` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 1998 стратегий.
+SELECT count(id) FROM `product_price_strategies` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+
+Создание динамических тегов
+
+До сентября 2021 года - 4 ДТ.
+SELECT count(id) FROM `dynamic_tags` WHERE created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 103 ДТ.
+SELECT count(id) FROM `dynamic_tags` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 470 ДТ.
+SELECT count(id) FROM `dynamic_tags` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Создание XML/JSON фид экспортов
+
+До сентября 2021 года - 290.
+SELECT count(id) FROM `export_xml_links` WHERE created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 216.
+SELECT count(id) FROM `export_xml_links` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 757.
+SELECT count(id) FROM `export_xml_links` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Создание Status Reports
+До сентября 2021 года - 301.
+SELECT count(id) FROM `notifications` WHERE created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 90.
+SELECT count(id) FROM `notifications` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 258.
+SELECT count(id) FROM `notifications` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Активность XML-API
+
+До сентября 2021 года - 0.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM `app_priceshape_dk` WHERE route = 'api/xml/products' AND created_at < '2021-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/xml/products' AND created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 62.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/xml/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM `app_priceshape_dk` WHERE route = 'api/xml/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 243. 
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/xml/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'XML-API' FROM app_priceshape_dk_ WHERE route = 'api/xml/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Активность JSON-API
+
+До сентября 2021 года - 0.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM `app_priceshape_dk` WHERE route = 'api/json/products' AND created_at < '2021-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/json/products' AND created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 53.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/json/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM `app_priceshape_dk` WHERE route = 'api/json/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 209. 
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/json/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'JSON-API' FROM app_priceshape_dk_ WHERE route = 'api/json/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Активность CSV-API
+
+До сентября 2021 года - 0.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM `app_priceshape_dk` WHERE route = 'api/csv/products' AND created_at < '2021-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/csv/products' AND created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 14.
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/csv/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM `app_priceshape_dk` WHERE route = 'api/csv/products' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 101. 
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/csv/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+и
+SELECT COUNT(DISTINCT(data->>'$."params"."auth-token"')) AS 'CSV-API' FROM app_priceshape_dk_ WHERE route = 'api/csv/products' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Количество созданных конкурентов
+
+До сентября 2021 года - 3 919 675.
+SELECT count(id) FROM `competitors` WHERE created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 5 201 183.
+SELECT count(id) FROM `competitors` WHERE created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 20 580 787.
+SELECT count(id) FROM `competitors` WHERE created_at BETWEEN '2022-02-01' AND '2022-09-01'
+
+Download price history
+
+До сентября 2021 года - 0.
+SELECT count(id) FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/v2/product/price-history' AND created_at < '2021-09-01'
+и
+SELECT count(id) FROM `app_priceshape_dk` WHERE route = 'api/v2/product/price-history' AND created_at < '2021-09-01'
+С сентября 2021 по февраль 2022 - 632.
+SELECT count(id) FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/v2/product/price-history' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+и
+SELECT count(id) FROM `app_priceshape_dk` WHERE route = 'api/v2/product/price-history' AND created_at BETWEEN '2021-09-01' AND '2022-02-01'
+С февраля 2022 по сентябрь 2022 - 1634.
+SELECT count(id) FROM `logs` WHERE host = 'app.priceshape.dk' AND route = 'api/v2/product/price-history' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'
+и
+SELECT count(id) FROM `app_priceshape_dk` WHERE route = 'api/v2/product/price-history' AND created_at BETWEEN '2022-02-01' AND '2022-09-01'

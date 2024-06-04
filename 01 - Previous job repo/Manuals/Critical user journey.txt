@@ -1,0 +1,20 @@
+Critical Path
+
+1. Create an admin.
+2. Create an account.
+3. Log in as admin and switch to the created account.
+4. Add a data feed to the account.
+5. Add a webshop.
+6. Add recommendations to the product list (create a match).
+7. Create a strategy.
+8. Create a dynamic tag (grant access).
+9. Export products.
+10. Create a status report.
+11. Delete several matches.
+12. Link the account to the admin.
+13. Check the widgets on the DS page (grant access).
+14. Check the widgets on the dashboard.
+15. Create a manual match.
+16. Verify that changes from the parser update, delete, and restore competitor products.
+17. Verify that feed updates via cron add, soft delete, and restore products.
+18. Check the API.

@@ -1,0 +1,48 @@
+Defect Life Cycle
+
+The Defect Life Cycle is the sequence of stages that a defect (bug) goes through from its creation to closure. This process can be visualized using a diagram with different statuses and actions that change these statuses.
+
+Each stage of interaction with the defect is defined as a "Status." It is important to note that in Jira there is no separate attribute for "Defect Status," but the concept of status remains relevant. The defect status indicates who is currently working on the defect and what further steps need to be taken. After completing each stage, the defect moves to the next status.
+
+Defect Statuses:
+
+1. New - The defect is initially registered in the bug tracking system. The tester creates a defect report and assigns it to the manager. The defect automatically moves to the "Ready for development" column.
+2. Assigned - The manager assigns a key to the defect and assigns it to a developer. The defect remains in the "Ready for development" column. Defects with lower priority may be sent to the backlog.
+3. Open - The developer takes the defect report for analysis and correction. The defect moves to the "In progress" column.
+4. Fixed - The developer makes the necessary changes to the code and verifies them. The defect with this status is returned to the tester in the "Waiting for BE/FE" column (for cases with separate frontend and backend tasks) or in the "Ready for QA" column.
+5. QA testing - The tester performs retesting of the modified code provided by the developer to verify if the defect is fixed. The defect moves to the "QA in progress" column.
+6. To fix - If the tester finds defects in the fixed code, the bug is sent for rework. After fixing the defect, it goes through the stages "Ready for development" -> "In progress" -> "Ready for QA" -> "QA in progress" until all defects are fixed.
+7. Verified - If the defect is not reproducible, the tester confirms that the defect is fixed and leaves a comment "QA = passed" in the defect report, then moves it to the "Review" column.
+8. Code review - The fixed code is reviewed by a technical specialist ("Reviewer"). If errors are found in the code, the defect is sent for rework. After rework, the defect is rechecked by the developer, tester, and undergoes another code review. In case of successful review, the defect is moved to the "To approve" column.
+9. Approved - The fixed version of the defect is submitted for client review. If the client approves the changes, the defect is scheduled for release candidate and moved to the "Release candidate" column.
+
+Release candidate - The defect is considered fixed and awaits implementation in the next product versions.
+Reopened - If the defect is reproduced during regression testing, the tester reopens it and assigns it to the developer (a regression thread is created for reporting on defect correction).
+Closed - If the tester is confident that the defect is no longer reproducible in production, they close it and move it to the "Done on live" column. This status means that the defect is fixed, tested, and approved.
+
+Duplicate - If a report is already made for the defect, or there are two bugs resulting from the same cause, one of them is assigned this status.
+Rejected - If the manager or developer considers the defect unjustified or its fix too costly compared to its severity, the defect may be rejected and not considered for correction or implementation.
+Deferred - The defect may be deferred if its priority is low, or a functionality overhaul is planned. Defects with this status may remain in the backlog for further consideration.
+Not a bug - This status is assigned when the found defect is not actually a defect, or it is found due to improper use of the product's functionality.
+
+
+Defect Life Cycle:
+
+1. Tester identifies a defect.
+2. Tester checks for duplicates in the backlog or development.
+3. Tester provides a detailed description of the defect to the manager (or test lead) to determine if a report needs to be opened.
+4. Tester logs the defect report in the bug-tracking system (New).
+5. Manager assigns the bug to a developer (Assigned) or defers it to the backlog.
+6. Developer verifies the reproducibility of the defect and assigns one of the following statuses:
+   - Rejected - Significant difficulties exist in fixing the defect (after consulting with the manager).
+   - Deferred - Fixing the defect can be postponed to future software versions (after consulting with the manager).
+   - Not a bug - No changes will be made to the software's functionality (after consulting with the manager).
+   - Open - Developer takes the defect into work.
+   - Fixed - Developer makes changes to the code and verifies them.
+7. QA testing.
+8. If the defect is not reproducible in the test environment and does not affect the functionality in which it was found, the tester marks QA = Passed (Verified).
+9. Code review.
+10. Client approval (To Approve).
+11. Release candidate, regression testing (Release candidate).
+12. If the defect is reproduced during regression testing, the tester returns it to the developer for correction (status "Reopened") and such a defect goes through the life cycle again.
+13. If the defect is not reproducible in production, the tester closes it (Closed).

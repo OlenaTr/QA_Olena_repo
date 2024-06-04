@@ -1,0 +1,343 @@
+Newman Command Line Options
+newman [options]
+-h, --help
+Show command line help, including a list of options, and sample use cases.
+-v, --version
+Displays the current Newman version, taken from package.json
+newman run <collection-file-source> [options]
+
+-e <source>, --environment <source>
+Specify an environment file path or URL. Environments provide a set of variables that one can use within collections. 
+
+-g <source>, --globals <source>
+Specify the file path or URL for global variables. Global variables are similar to environment variables but have a lower precedence and can be overridden by environment variables having the same name.
+
+-d <source>, --iteration-data <source>
+Specify a data source file (JSON or CSV) to be used for iteration as a path to a file or as a URL. 
+
+-n <number>, --iteration-count <number>
+Specifies the number of times the collection has to be run when used in conjunction with iteration data file.
+
+--folder <name>
+Run requests within a particular folder/folders or specific requests in a collection. Multiple folders or requests can be specified by using --folder multiple times, like so: --folder f1 --folder f2 --folder r1 --folder r2.
+
+--working-dir <path>
+Set the path of the working directory to use while reading files with relative paths. Default to current directory.
+
+--no-insecure-file-read
+Prevents reading of files situated outside of the working directory.
+
+--export-environment <path>
+The path to the file where Newman will output the final environment variables file before completing a run.
+
+--export-globals <path>
+The path to the file where Newman will output the final global variables file before completing a run.
+
+--export-collection <path>
+The path to the file where Newman will output the final collection file before completing a run.
+
+--timeout <ms>
+Specify the time (in milliseconds) to wait for the entire collection run to complete execution.
+
+--timeout-request <ms>
+Specify the time (in milliseconds) to wait for requests to return a response.
+
+--timeout-script <ms>
+Specify the time (in milliseconds) to wait for scripts to complete execution.
+
+-k, --insecure
+Disables SSL verification checks and allows self-signed SSL certificates.
+
+--ignore-redirects
+Prevents newman from automatically following 3XX redirect responses.
+
+--delay-request
+Specify the extent of delay between requests (milliseconds).
+
+--cookie-jar <path>
+Specify the file path for a JSON Cookie Jar. Uses tough-cookie to deserialize the file.
+
+--export-cookie-jar <path>
+The path to the file where Newman will output the final cookie jar file before completing a run. Uses tough-cookie's serialize method.
+
+--bail [optional modifiers]
+Specify whether or not to stop a collection run on encountering the first test script error.
+Can optionally accept modifiers, currently include folder and failure.
+folder allows you to skip the entire collection run in case an invalid folder was specified using the --folder option or an error was encountered in general.
+On the failure of a test, failure would gracefully stop a collection run after completing the current test script.
+-x, --suppress-exit-code
+Specify whether or not to override the default exit code for the current run.
+
+--color <value>
+Enable or Disable colored CLI output. The color value can be any of the three: on, off or auto(default).
+With auto, Newman attempts to automatically turn color on or off based on the color support in the terminal. This behaviour can be modified by using the on or off value accordingly.
+--disable-unicode
+Specify whether or not to force the unicode disable option. When supplied, all symbols in the output will be replaced by their plain text equivalents.
+
+--global-var "<global-variable-name>=<global-variable-value>"
+Allows the specification of global variables via the command line, in a key=value format. Multiple CLI global variables can be added by using --global-var multiple times, like so: --global-var "foo=bar" --global-var "alpha=beta".
+
+--env-var "<environment-variable-name>=<environment-variable-value>"
+Allows the specification of environment variables via the command line, in a key=value format. Multiple CLI environment variables can be added by using --env-var multiple times, like so: --env-var "foo=bar" --env-var "alpha=beta".
+
+--verbose
+Show detailed information of collection run and each request sent.
+
+SSL
+Client Certificates
+
+Client certificates are an alternative to traditional authentication mechanisms. These allow their users to make authenticated requests to a server, using a public certificate, and an optional private key that verifies certificate ownership. In some cases, the private key may also be protected by a secret passphrase, providing an additional layer of authentication security.
+Newman supports SSL client certificates, via the following CLI options:
+Using a single SSL client certificate
+
+--ssl-client-cert
+The path to the public client certificate file.
+
+--ssl-client-key
+The path to the private client key (optional).
+
+--ssl-client-passphrase
+The secret passphrase used to protect the private client key (optional).
+
+Using SSL client certificates configuration file (supports multiple certificates per run)
+
+--ssl-client-cert-list
+The path to the SSL client certificate list configuration file (JSON format). 
+This option allows setting different SSL client certificate according to URL or hostname. This option takes precedence over --ssl-client-cert, --ssl-client-key and --ssl-client-passphrase options. If there is no match for the URL in the list, these options are used as fallback.
+
+Configuring Proxy
+
+Newman can also be configured to work with proxy settings via the following environment variables:
+HTTP_PROXY / http_proxy
+HTTPS_PROXY / https_proxy
+NO_PROXY / no_proxy
+API Reference
+newman.run(options: object , callback: function) => run: EventEmitter
+
+The run function executes a collection and returns the run result to a callback function provided as parameter. The return of the newman.run function is a run instance, which emits run events that can be listened to.
+Parameter	Description
+options	This is a required argument and it contains all information pertaining to running a collection.
+
+Required
+Type: object
+options.collection	The collection is a required property of the options argument. It accepts an object representation of a Postman Collection which should resemble the schema mentioned at https://schema.getpostman.com/. The value of this property could also be an instance of Collection Object from the Postman Collection SDK.
+
+As string, one can provide a URL where the Collection JSON can be found (e.g. Postman Cloud API service) or path to a local JSON file.
+
+Required
+Type: object|string PostmanCollection
+options.environment	One can optionally pass an environment file path or URL as string to this property and that will be used to read Postman Environment Variables from. This property also accepts environment variables as an object. Environment files exported from Postman App can be directly used here.
+
+Optional
+Type: object|string
+options.envVar	One can optionally pass environment variables as an array of key-value string object pairs. It will be used to read Postman Environment Variables as well as overwrite environment variables from options.environments.
+
+Optional
+Type: array|object
+options.globals	Postman Global Variables can be optionally passed on to a collection run in form of path to a file or URL. It also accepts variables as an object.
+
+Optional
+Type: object|string
+options.globalVar	One can optionally pass global environment variables as an array of key-value string object pairs. It will be used to read Postman Global Environment Variables as well as overwrite global environment variables from options.globals.
+
+Optional
+Type: array|object
+options.iterationCount	Specify the number of iterations to run on the collection. This is usually accompanied by providing a data file reference as options.iterationData.
+
+Optional
+Type: number, Default value: 1
+options.iterationData	Path to the JSON or CSV file or URL to be used as data source when running multiple iterations on a collection.
+
+Optional
+Type: string
+options.folder	The name or ID of the folder/folders (ItemGroup) in the collection which would be run instead of the entire collection.
+
+Optional
+Type: string|array
+options.workingDir	The path of the directory to be used as working directory.
+
+Optional
+Type: string, Default value: Current Directory
+options.insecureFileRead	Allow reading files outside of working directory.
+
+Optional
+Type: boolean, Default value: true
+options.timeout	Specify the time (in milliseconds) to wait for the entire collection run to complete execution.
+
+Optional
+Type: number, Default value: Infinity
+options.timeoutRequest	Specify the time (in milliseconds) to wait for requests to return a response.
+
+Optional
+Type: number, Default value: Infinity
+options.timeoutScript	Specify the time (in milliseconds) to wait for scripts to return a response.
+
+Optional
+Type: number, Default value: Infinity
+options.delayRequest	Specify the time (in milliseconds) to wait for between subsequent requests.
+
+Optional
+Type: number, Default value: 0
+options.ignoreRedirects	This specifies whether newman would automatically follow 3xx responses from servers.
+
+Optional
+Type: boolean, Default value: false
+options.insecure	Disables SSL verification checks and allows self-signed SSL certificates.
+
+Optional
+Type: boolean, Default value: false
+options.bail	A switch to specify whether or not to gracefully stop a collection run (after completing the current test script) on encountering the first error. Takes additional modifiers as arguments to specify whether to end the run with an error for invalid name or path.
+
+Available modifiers: folder and failure.
+eg. bail : ['folder']
+
+Optional
+Type: boolean|object, Default value: false
+options.suppressExitCode	If present, allows overriding the default exit code from the current collection run, useful for bypassing collection result failures. Takes no arguments.
+
+Optional
+Type: boolean, Default value: false
+options.reporters	Specify one reporter name as string or provide more than one reporter name as an array.
+
+Available reporters: cli, json, junit, progress and emojitrain.
+
+Optional
+Type: string|array
+options.reporter	Specify options for the reporter(s) declared in options.reporters.
+e.g. reporter : { junit : { export : './xmlResults.xml' } }
+e.g. reporter : { html : { export : './htmlResults.html', template: './customTemplate.hbs' } }
+
+Optional
+Type: object
+options.color	Enable or Disable colored CLI output.
+
+Available options: on, off and auto
+
+Optional
+Type: string, Default value: auto
+options.sslClientCert	The path to the public client certificate file.
+
+Optional
+Type: string
+options.sslClientKey	The path to the private client key file.
+
+Optional
+Type: string
+options.sslClientPassphrase	The secret client key passphrase.
+
+Optional
+Type: string
+options.sslClientCertList	The path to the client certificate configuration list file. This option takes precedence over sslClientCert, sslClientKey and sslClientPassphrase. When there is no match in this configuration list, sslClientCert is used as fallback.
+
+Optional
+Type: string|array
+options.sslExtraCaCerts	The path to the file, that holds one or more trusted CA certificates in PEM format.
+
+Optional
+Type: string
+options.requestAgents	Specify the custom requesting agents to be used when performing HTTP and HTTPS requests respectively. Example: Using Socks Proxy
+
+Optional
+Type: object
+options.cookieJar	One can optionally pass a CookieJar file path as string to this property and that will be deserialized using tough-cookie. This property also accepts a tough-cookie CookieJar instance.
+
+Optional
+Type: object|string
+options.newmanVersion	The Newman version used for the collection run.
+
+This will be set by Newman
+callback	Upon completion of the run, this callback is executed with the error, summary argument.
+
+Required
+Type: function
+newman.run~callback(error: object , summary: object)
+
+The callback parameter of the newman.run function receives two arguments: (1) error and (2) summary
+Argument	Description
+error	In case newman faces an error during the run, the error is passed on to this argument of callback. By default, only fatal errors, such as the ones caused by any fault inside Newman is passed on to this argument. However, setting abortOnError:true or abortOnFailure:true as part of run options will cause newman to treat collection script syntax errors and test failures as fatal errors and be passed down here while stopping the run abruptly at that point.
+
+Type: object
+summary	The run summary will contain information pertaining to the run.
+
+Type: object
+summary.error	An error object which if exists, contains an error message describing the message
+
+Type: object
+summary.collection	This object contains information about the collection being run, it's requests, and their associated pre-request scripts and tests.
+
+Type: object
+summary.environment	An object with environment variables used for the current run, and the usage status for each of those variables.
+
+Type: object
+summary.globals	This object holds details about the globals used within the collection run namespace.
+
+Type: object
+summary.run	A cumulative run summary object that provides information on .
+
+Type: object
+summary.run.stats	An object which provides details about the total, failed, and pending counts for pre request scripts, tests, assertions, requests, and more.
+
+Type: object
+summary.run.failures	An array of failure objects, with each element holding details, including the assertion that failed, and the request.
+
+Type: array.<object>
+summary.run.executions	This object contains information about each request, along with it's associated activities within the scope of the current collection run.
+
+Type: array.<object>
+
+
+Reporters
+Configuring Reporters
+
+-r <reporter-name>, --reporters <reporter-name>
+Specify one reporter name as string or provide more than one reporter name as a comma separated list of reporter names. Available reporters are: cli, json, junit, progress and emojitrain.
+
+Spaces should not be used between reporter names / commas whilst specifying a comma separated list of reporters. For instance:
+
+✅ -r cli,json,junit
+❌ -r cli , json,junit
+
+--reporter-{{reporter-name}}-{{reporter-option}}
+When multiple reporters are provided, if one needs to specifically override or provide an option to one reporter, this is achieved by prefixing the option with --reporter-{{reporter-name}}-.
+
+For example, ... --reporters cli,json --reporter-cli-silent would silence the CLI reporter only.
+
+--reporter-{{reporter-options}}
+If more than one reporter accepts the same option name, they can be provided using the common reporter option syntax.
+
+For example, ... --reporters cli,json --reporter-silent passes the silent: true option to both JSON and CLI reporter.
+
+CLI Reporter
+
+The built-in CLI reporter supports the following options, use them with appropriate argument switch prefix. For example, the option no-summary can be passed as --reporter-no-summary or --reporter-cli-no-summary.
+CLI reporter is enabled by default when Newman is used as a CLI, you do not need to specifically provide the same as part of --reporters option. However, enabling one or more of the other reporters will result in no CLI output. Explicitly enable the CLI option in such a scenario.
+CLI Option	Description
+--reporter-cli-silent	The CLI reporter is internally disabled and you see no output to terminal.
+| --reporter-cli-show-timestamps | This prints the local time for each request made. | | --reporter-cli-no-summary | The statistical summary table is not shown. | | --reporter-cli-no-failures | This prevents the run failures from being separately printed. | | --reporter-cli-no-assertions | This turns off the output for request-wise assertions as they happen. | | --reporter-cli-no-success-assertions | This turns off the output for successful assertions as they happen. | | --reporter-cli-no-console | This turns off the output of console.log (and other console calls) from collection's scripts. | | --reporter-cli-no-banner | This turns off the newman banner shown at the beginning of each collection run. |
+JSON Reporter
+
+The built-in JSON reporter is useful in producing a comprehensive output of the run summary. It takes the path to the file where to write the report. The content of this file is exactly the same as the summary parameter sent to the callback when Newman is used as a library.
+To enable JSON reporter, provide --reporters json as a CLI option.
+CLI Option	Description
+--reporter-json-export <path>	Specify a path where the output JSON file will be written to disk. If not specified, the file will be written to newman/ in the current working directory. If the specified path does not exist, it will be created. However, if the specified path is a pre-existing directory, the report will be generated in that directory.
+JUNIT/XML Reporter
+
+The built-in JUnit reporter can output a summary of the collection run to a JUnit compatible XML file. To enable the JUNIT reporter, provide --reporters junit as a CLI option.
+CLI Option	Description
+--reporter-junit-export <path>	Specify a path where the output XML file will be written to disk. If not specified, the file will be written to newman/ in the current working directory. If the specified path does not exist, it will be created. However, if the specified path is a pre-existing directory, the report will be generated in that directory.
+HTML Reporter
+
+An external reporter, maintained by Postman, which can be installed via npm install -g newman-reporter-html. This reporter was part of the Newman project but was separated out into its own project in V4.
+External Reporters
+Using External Reporters
+
+Newman also supports external reporters, provided that the reporter works with Newman's event sequence. Working examples of how Newman reporters work can be found in lib/reporters.
+For instance, to use the Newman HTML Reporter:
+Install the reporter package. Note that the name of the package is of the form newman-reporter-<name>. The installation should be global if Newman is installed globally, local otherwise. (Remove -g flag from the command below for a local installation.)
+$ npm install -g newman-reporter-html
+Use the installed reporter, either via the CLI, or programmatic usage. Here, the newman-reporter prefix is not required while specifying the reporter name in the options.
+$ newman run /path/to/collection.json -r cli,html
+const newman = require('newman');
+newman.run({
+    collection: '/path/to/collection.json',
+    reporters: ['cli', 'html']}, process.exit);
